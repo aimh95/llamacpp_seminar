@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GGUF Q4_0에서 HTP/HVX/HMX 실행까지</title>
+<style>
+  :root{
+    --bg:#f6f7f9;
+    --bg-alt:#ffffff;
+    --fg:#1c2430;
+    --fg-muted:#5a6472;
+    --accent:#2b5b8c;
+    --accent-soft:#dce9f5;
+    --border:#d7dce2;
+    --code-bg:#1e2530;
+    --code-fg:#e8ecf1;
+    --tag-confirmed-bg:#dcefe0;
+    --tag-confirmed-fg:#1f6b3a;
+    --tag-maybe-bg:#fdecd2;
+    --tag-maybe-fg:#8a5a10;
+    --tag-impl-bg:#e4e1f7;
+    --tag-impl-fg:#4c3d99;
+    --node-bg:#ffffff;
+    --node-border:#a9bbcd;
+    --node-alt-bg:#eef3f8;
+    --shadow: 0 1px 3px rgba(20,30,50,0.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12161c;
+      --bg-alt:#1a2029;
+      --fg:#e4e8ee;
+      --fg-muted:#9aa5b3;
+      --accent:#7fb3e8;
+      --accent-soft:#213347;
+      --border:#2c333d;
+      --code-bg:#0d1117;
+      --code-fg:#dbe4ee;
+      --tag-confirmed-bg:#173726;
+      --tag-confirmed-fg:#78d99b;
+      --tag-maybe-bg:#3a2c10;
+      --tag-maybe-fg:#e3b866;
+      --tag-impl-bg:#241f42;
+      --tag-impl-fg:#b7a8ef;
+      --node-bg:#1e2531;
+      --node-border:#3a4657;
+      --node-alt-bg:#212a37;
+      --shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family: -apple-system, "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", "Pretendard", Roboto, sans-serif;
+    line-height:1.75;
+    font-size:16px;
+  }
+  a{color:var(--accent);}
+  h1,h2,h3,h4{
+    font-weight:700;
+    line-height:1.35;
+    color:var(--fg);
+  }
+  .layout{
+    display:flex;
+    max-width:1320px;
+    margin:0 auto;
+    align-items:flex-start;
+  }
+  .toc-toggle-checkbox{display:none;}
+  .toc-toggle-label{
+    display:none;
+    position:fixed;
+    top:12px;
+    left:12px;
+    z-index:50;
+    background:var(--accent);
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  nav.toc{
+    position:sticky;
+    top:0;
+    align-self:flex-start;
+    width:270px;
+    flex:0 0 270px;
+    max-height:100vh;
+    overflow-y:auto;
+    padding:24px 16px 40px 20px;
+    border-right:1px solid var(--border);
+    background:var(--bg);
+  }
+  nav.toc h2{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--fg-muted);
+    margin:0 0 12px 4px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    counter-reset:toc;
+  }
+  nav.toc li{margin:0;}
+  nav.toc a{
+    display:block;
+    counter-increment:toc;
+    text-decoration:none;
+    color:var(--fg-muted);
+    font-size:13.5px;
+    padding:6px 8px;
+    border-radius:6px;
+  }
+  nav.toc a::before{
+    content: counter(toc) ". ";
+    color:var(--accent);
+    font-weight:600;
+  }
+  nav.toc a:hover{background:var(--accent-soft); color:var(--fg);}
+  main.content{
+    flex:1 1 auto;
+    min-width:0;
+    padding:40px 48px 100px;
+  }
+  header.doc-header{
+    margin-bottom:48px;
+    padding-bottom:28px;
+    border-bottom:2px solid var(--border);
+  }
+  header.doc-header h1{
+    font-size:clamp(22px,3.4vw,34px);
+    margin:0 0 12px;
+  }
+  header.doc-header p.subtitle{
+    color:var(--fg-muted);
+    font-size:15.5px;
+    margin:0;
+  }
+  section{
+    margin-bottom:64px;
+    scroll-margin-top:20px;
+  }
+  section h2{
+    font-size:22px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:20px;
+  }
+  section h2 .num{
+    color:var(--accent);
+    margin-right:8px;
+    font-variant-numeric:tabular-nums;
+  }
+  section h3{
+    font-size:17px;
+    margin:28px 0 12px;
+    color:var(--accent);
+  }
+  p{margin:0 0 16px;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px;}
+  strong{color:var(--fg);}
+  .term{
+    background:var(--accent-soft);
+    padding:1px 5px;
+    border-radius:4px;
+    font-weight:600;
+  }
+  .tag{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-right:4px;
+    vertical-align:middle;
+  }
+  .tag-confirmed{background:var(--tag-confirmed-bg); color:var(--tag-confirmed-fg);}
+  .tag-maybe{background:var(--tag-maybe-bg); color:var(--tag-maybe-fg);}
+  .tag-impl{background:var(--tag-impl-bg); color:var(--tag-impl-fg);}
+  .callout{
+    background:var(--node-alt-bg);
+    border:1px solid var(--border);
+    border-left:4px solid var(--accent);
+    border-radius:8px;
+    padding:14px 18px;
+    margin:18px 0;
+    font-size:14.5px;
+    color:var(--fg-muted);
+  }
+  .callout strong{color:var(--fg);}
+  .callout.warn{border-left-color:#c98a2c;}
+  pre{
+    background:var(--code-bg);
+    color:var(--code-fg);
+    padding:16px 18px;
+    border-radius:10px;
+    overflow-x:auto;
+    font-size:13.3px;
+    line-height:1.6;
+    margin:16px 0;
+  }
+  code{
+    font-family: "Consolas","D2Coding","SFMono-Regular",Menlo,monospace;
+  }
+  p code, li code, td code{
+    background:var(--accent-soft);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:0.9em;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+    font-size:14px;
+    background:var(--bg-alt);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  th,td{
+    border:1px solid var(--border);
+    padding:9px 12px;
+    text-align:left;
+  }
+  th{
+    background:var(--node-alt-bg);
+    font-weight:700;
+    font-size:13px;
+    color:var(--fg-muted);
+  }
+  td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  figure{
+    margin:24px 0;
+    padding:20px;
+    background:var(--bg-alt);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  figcaption{
+    margin-top:12px;
+    font-size:13px;
+    color:var(--fg-muted);
+    text-align:center;
+  }
+  /* pipeline svg node styling */
+  .pipe-node rect{
+    fill:var(--node-bg);
+    stroke:var(--node-border);
+    stroke-width:1.4;
+  }
+  .pipe-node.alt rect{fill:var(--node-alt-bg);}
+  .pipe-title{
+    fill:var(--fg);
+    font-size:13.5px;
+    font-weight:700;
+  }
+  .pipe-desc{
+    fill:var(--fg-muted);
+    font-size:11px;
+  }
+  .pipe-arrow{
+    stroke:var(--accent);
+    stroke-width:2;
+    fill:none;
+    marker-end:url(#arrowhead);
+  }
+  /* flow diagram (CSS) */
+  .flow{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+  }
+  .flow-step{
+    background:var(--node-bg);
+    border:1px solid var(--node-border);
+    border-radius:10px;
+    padding:12px 16px;
+    box-shadow:var(--shadow);
+  }
+  .flow-step .step-title{font-weight:700; font-size:14px;}
+  .flow-step .step-desc{font-size:12.5px; color:var(--fg-muted); margin-top:2px;}
+  .flow-arrow-down{
+    align-self:center;
+    color:var(--accent);
+    font-size:18px;
+    padding:4px 0;
+  }
+  .flow-branch{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin:6px 0;
+  }
+  .flow-branch .flow-step{flex:1 1 200px;}
+  .flow-branch .flow-step.hmx{border-color:#2b8c5b;}
+  .flow-branch .flow-step.hvx-t{border-color:#2b6f8c;}
+  .flow-branch .flow-step.hvx-f{border-color:#8c7a2b;}
+  .flow-branch .flow-step.cpu{border-color:#8c2b2b;}
+
+  /* q4 block diagram */
+  .block-diagram{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    align-items:flex-start;
+  }
+  .scale-box{
+    background:var(--accent);
+    color:#fff;
+    border-radius:10px;
+    padding:16px;
+    min-width:120px;
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    box-shadow:var(--shadow);
+  }
+  .qs-grid{
+    display:grid;
+    grid-template-columns:repeat(8,minmax(46px,1fr));
+    gap:5px;
+    flex:1 1 380px;
+  }
+  .byte-cell{
+    border:1px solid var(--node-border);
+    border-radius:6px;
+    overflow:hidden;
+    font-size:10px;
+    text-align:center;
+    background:var(--node-bg);
+  }
+  .byte-cell .nib{
+    padding:4px 2px;
+  }
+  .byte-cell .nib.lo{background:var(--accent-soft);}
+  .byte-cell .nib.hi{background:var(--node-alt-bg); border-top:1px dashed var(--border);}
+  .byte-cell .idx{
+    font-size:9px;
+    color:var(--fg-muted);
+    padding-top:3px;
+  }
+
+  /* bar chart */
+  .bar-row{display:flex; align-items:center; gap:10px; margin:8px 0; font-size:13px;}
+  .bar-label{width:150px; flex:0 0 150px; color:var(--fg-muted);}
+  .bar-track{flex:1; background:var(--node-alt-bg); border-radius:6px; height:22px; position:relative;}
+  .bar-fill{
+    height:100%;
+    border-radius:6px;
+    background:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    color:#fff;
+    font-size:11.5px;
+    padding-right:8px;
+    white-space:nowrap;
+  }
+  .bar-fill.small{background:#5aa06f;}
+
+  /* layout table demo */
+  .layout-tables{
+    display:flex;
+    gap:26px;
+    flex-wrap:wrap;
+  }
+  .layout-tables > div{flex:1 1 260px;}
+  .mini-grid{
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    gap:3px;
+    font-size:11px;
+  }
+  .mini-cell{
+    border-radius:4px;
+    padding:6px 2px;
+    text-align:center;
+    color:#fff;
+    font-weight:600;
+  }
+  .b0{background:#2b6f8c;}
+  .b1{background:#2b8c5b;}
+  .b2{background:#8c7a2b;}
+  .b3{background:#8c2b6f;}
+
+  footer.doc-footer{
+    border-top:1px solid var(--border);
+    padding-top:24px;
+    color:var(--fg-muted);
+    font-size:13px;
+  }
+
+  @media (max-width: 980px){
+    .toc-toggle-label{display:block;}
+    nav.toc{
+      position:fixed;
+      top:0; left:0;
+      height:100vh;
+      z-index:40;
+      transform:translateX(-105%);
+      transition:transform .2s ease;
+      background:var(--bg);
+      box-shadow:0 0 20px rgba(0,0,0,0.3);
+    }
+    .toc-toggle-checkbox:checked ~ .layout nav.toc,
+    .toc-toggle-checkbox:checked + .toc-toggle-label + nav.toc{
+      transform:translateX(0);
+    }
+    main.content{padding:70px 20px 80px;}
+    .qs-grid{grid-template-columns:repeat(4,minmax(46px,1fr));}
+  }
+</style>
+</head>
+<body>
+
+<input type="checkbox" id="toc-toggle" class="toc-toggle-checkbox">
+<label for="toc-toggle" class="toc-toggle-label">☰ 목차</label>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#summary">전체 한 장 요약</a></li>
+      <li><a href="#pipeline">전체 파이프라인 그림</a></li>
+      <li><a href="#gguf-container">GGUF 파일은 무엇을 담는가</a></li>
+      <li><a href="#q4-quant">Q4_0 양자화</a></li>
+      <li><a href="#nibble">Nibble Packing</a></li>
+      <li><a href="#activation">Activation이란 무엇인가</a></li>
+      <li><a href="#matmul-compare">FP16 matmul vs Q4_0 matmul</a></li>
+      <li><a href="#why-fast">Scale이 있는데 왜 빨라지는가</a></li>
+      <li><a href="#layout">Row-major vs Tile-major</a></li>
+      <li><a href="#htp0-repack">HTP0-REPACK</a></li>
+      <li><a href="#graph-scheduler">Graph Build와 Scheduler</a></li>
+      <li><a href="#htp-compute">HTP graph_compute와 HMX/HVX</a></li>
+      <li><a href="#decode-step">Decode 1 Step 예시</a></li>
+      <li><a href="#debug-checklist">실무 디버깅 체크포인트</a></li>
+      <li><a href="#conclusion">마무리</a></li>
+      <li><a href="#code-keywords">관련 코드 탐색 키워드</a></li>
+    </ol>
+  </nav>
+
+  <main class="content">
+    <header class="doc-header">
+      <h1>GGUF Q4_0에서 HTP/HVX/HMX 실행까지: Weight가 NPU Kernel로 내려가는 전체 흐름</h1>
+      <p class="subtitle">Gemma-4 e2b 모델을 Qualcomm Gen4 NPU(Hexagon HTP) 위에서 추론 가능하게 만드는 PoC를 위한 기술 해설 문서 · 온디바이스 LLM 최적화</p>
+    </header>
+
+    <section id="summary">
+      <h2><span class="num">1.</span>전체 한 장 요약</h2>
+      <p>
+        온디바이스 LLM을 NPU에서 돌리는 작업은 "모델 파일 하나를 통째로 칩에 밀어 넣는" 일처럼 들리지만, 실제로는 훨씬 잘게 쪼개진 과정의 연속입니다. 먼저 Hugging Face에 공개된 FP16 또는 BF16 형식의 원본 가중치를 <span class="term">GGUF</span>라는 컨테이너 포맷으로 변환하고, 이 과정에서 가중치를 <span class="term">Q4_0</span>이라는 4비트 양자화 형식으로 압축해 GGUF 파일 안의 metadata·tensor info·tensor data 영역에 나누어 저장합니다. 이 파일을 <code>llama.cpp</code> 런타임이 구동될 때 <code>llama_model_loader</code>가 열어서 각 텐서의 이름·shape·타입을 파싱하고, <code>load_tensors</code> 단계에서 각 텐서를 어떤 backend buffer에 배치할지 — CPU 메모리에 그대로 매핑(<code>CPU_Mapped</code>)할지, HTP(Hexagon Tensor Processor) 전용 버퍼로 보낼지, 그리고 HTP로 보낸다면 kernel이 읽기 좋은 순서로 재배치한 <code>HTP0-REPACK</code> 버퍼로 만들지를 결정합니다. 이후 추론 시점에는 <code>build_attn</code>, <code>build_ffn</code> 같은 함수들이 실제 계산을 곧바로 실행하는 대신 연산 그래프의 노드를 만들고(graph build), scheduler가 각 노드에 대해 <code>supports_op</code>·<code>supports_buft</code>를 검사해 이 연산을 CPU에서 돌릴지 HTP에서 돌릴지를 결정합니다. HTP로 배정된 노드는 <code>HTP graph_compute</code>라는 host-side 준비 코드를 거쳐 GGML 연산자를 HTP 고유의 opcode로 매핑하고, 필요하면 여러 연산을 fusion하고, matmul 파라미터를 계산한 뒤 <code>dspqueue</code>를 통해 실제 DSP(HTP) 코어로 작업을 넘기며, 그 코어 안에서 <span class="term">HMX</span>(행렬곱 특화 유닛)나 <span class="term">HVX</span>(벡터 유닛) kernel이 실제 곱셈-누산을 수행합니다.
+      </p>
+      <div class="callout">
+        <strong>핵심 메시지</strong> — 이 전체 흐름에서 가장 중요한 사실은, "모델을 NPU에 올린다"는 표현이 실제로는 <strong>텐서 하나하나의 배치(tensor placement)</strong>와 <strong>연산 그래프 노드 하나하나의 스케줄링(graph node scheduling)</strong>이 조합된 결과라는 점입니다. 어떤 텐서는 CPU 메모리에 남고, 어떤 텐서는 HTP 전용 레이아웃으로 재포장되며, 어떤 연산은 HTP에서 돌고 어떤 연산은 여전히 CPU로 fallback됩니다. "GGUF가 Q4_0이다"라는 사실 하나만으로는 "HTP에서 빠르게 돈다"는 결론이 자동으로 따라오지 않습니다 — 그 사이에는 buffer placement, layout 재배치, scheduler 판정이라는 여러 단계가 더 있습니다.
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <h2><span class="num">2.</span>전체 파이프라인 그림</h2>
+      <p>아래 그림은 원본 FP16 모델부터 실제 HTP/HVX/HMX kernel 실행까지 데이터와 제어가 흘러가는 14개의 단계를 순서대로 보여줍니다. 각 박스 아래의 작은 글씨는 그 단계가 실제로 하는 일을 한 줄로 요약한 것입니다.</p>
+      <figure>
+        <svg viewBox="0 0 720 1560" width="100%" style="max-width:640px; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GGUF Q4_0 to HTP execution pipeline">
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"></path>
+            </marker>
+          </defs>
+          <!-- generated node list -->
+          <!-- each node: y start, height 78, gap 32 -->
+          <g class="pipe-node">
+            <rect x="60" y="10" width="600" height="72" rx="10"></rect>
+            <text x="360" y="38" text-anchor="middle" class="pipe-title">1. FP16 / BF16 HF 모델</text>
+            <text x="360" y="58" text-anchor="middle" class="pipe-desc">원본 Hugging Face 가중치 (FP16 또는 BF16)</text>
+          </g>
+          <path class="pipe-arrow" d="M360,82 L360,114"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="118" width="600" height="72" rx="10"></rect>
+            <text x="360" y="146" text-anchor="middle" class="pipe-title">2. GGUF 변환 (conversion)</text>
+            <text x="360" y="166" text-anchor="middle" class="pipe-desc">convert 스크립트가 GGUF 컨테이너 포맷을 생성</text>
+          </g>
+          <path class="pipe-arrow" d="M360,190 L360,222"></path>
+
+          <g class="pipe-node">
+            <rect x="60" y="226" width="600" height="72" rx="10"></rect>
+            <text x="360" y="254" text-anchor="middle" class="pipe-title">3. Q4_0 양자화</text>
+            <text x="360" y="274" text-anchor="middle" class="pipe-desc">weight 32개 단위를 block(scale + 4bit code)으로 압축</text>
+          </g>
+          <path class="pipe-arrow" d="M360,298 L360,330"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="334" width="600" height="72" rx="10"></rect>
+            <text x="360" y="358" text-anchor="middle" class="pipe-title">4. GGUF metadata / tensor info / tensor data</text>
+            <text x="360" y="378" text-anchor="middle" class="pipe-desc">header + 텐서 설명 + 실제 weight bytes를 파일에 기록</text>
+          </g>
+          <path class="pipe-arrow" d="M360,406 L360,438"></path>
+
+          <g class="pipe-node">
+            <rect x="60" y="442" width="600" height="72" rx="10"></rect>
+            <text x="360" y="470" text-anchor="middle" class="pipe-title">5. llama_model_loader</text>
+            <text x="360" y="490" text-anchor="middle" class="pipe-desc">GGUF 파일을 열고 텐서 목록·메타데이터를 파싱</text>
+          </g>
+          <path class="pipe-arrow" d="M360,514 L360,546"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="550" width="600" height="72" rx="10"></rect>
+            <text x="360" y="574" text-anchor="middle" class="pipe-title">6. create_tensor / 아키텍처 텐서 정의</text>
+            <text x="360" y="594" text-anchor="middle" class="pipe-desc">텐서 이름·shape·type을 정의 (아직 byte를 만드는 단계 아님)</text>
+          </g>
+          <path class="pipe-arrow" d="M360,622 L360,654"></path>
+
+          <g class="pipe-node">
+            <rect x="60" y="658" width="600" height="72" rx="10"></rect>
+            <text x="360" y="686" text-anchor="middle" class="pipe-title">7. load_tensors / buffer placement</text>
+            <text x="360" y="706" text-anchor="middle" class="pipe-desc">각 텐서를 어떤 backend buffer에 둘지 결정</text>
+          </g>
+          <path class="pipe-arrow" d="M360,730 L360,762"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="766" width="600" height="72" rx="10"></rect>
+            <text x="360" y="790" text-anchor="middle" class="pipe-title">8. CPU_Mapped / HTP0 / HTP0-REPACK</text>
+            <text x="360" y="810" text-anchor="middle" class="pipe-desc">실제 배치 버퍼: CPU 매핑 vs HTP tile 재배치 버퍼</text>
+          </g>
+          <path class="pipe-arrow" d="M360,838 L360,870"></path>
+
+          <g class="pipe-node">
+            <rect x="60" y="874" width="600" height="72" rx="10"></rect>
+            <text x="360" y="902" text-anchor="middle" class="pipe-title">9. graph build</text>
+            <text x="360" y="922" text-anchor="middle" class="pipe-desc">build_attn / build_ffn 등이 계산 그래프 노드를 생성</text>
+          </g>
+          <path class="pipe-arrow" d="M360,946 L360,978"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="982" width="600" height="72" rx="10"></rect>
+            <text x="360" y="1006" text-anchor="middle" class="pipe-title">10. scheduler: supports_op / supports_buft</text>
+            <text x="360" y="1026" text-anchor="middle" class="pipe-desc">노드별로 CPU / HTP / GPU 실행 backend를 결정</text>
+          </g>
+          <path class="pipe-arrow" d="M360,1054 L360,1086"></path>
+
+          <g class="pipe-node">
+            <rect x="60" y="1090" width="600" height="72" rx="10"></rect>
+            <text x="360" y="1118" text-anchor="middle" class="pipe-title">11. HTP graph_compute</text>
+            <text x="360" y="1138" text-anchor="middle" class="pipe-desc">HTP backend의 host-side 실행 준비 코드</text>
+          </g>
+          <path class="pipe-arrow" d="M360,1162 L360,1194"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="1198" width="600" height="72" rx="10"></rect>
+            <text x="360" y="1222" text-anchor="middle" class="pipe-title">12. op remap / fusion / kernel params</text>
+            <text x="360" y="1242" text-anchor="middle" class="pipe-desc">GGML op → HTP opcode 매핑, 연산 결합, 파라미터 계산</text>
+          </g>
+          <path class="pipe-arrow" d="M360,1266 L360,1298"></path>
+
+          <g class="pipe-node">
+            <rect x="60" y="1302" width="600" height="72" rx="10"></rect>
+            <text x="360" y="1330" text-anchor="middle" class="pipe-title">13. dspqueue</text>
+            <text x="360" y="1350" text-anchor="middle" class="pipe-desc">준비된 작업을 DSP(HTP) 실행 큐에 제출</text>
+          </g>
+          <path class="pipe-arrow" d="M360,1374 L360,1406"></path>
+
+          <g class="pipe-node alt">
+            <rect x="60" y="1410" width="600" height="90" rx="10"></rect>
+            <text x="360" y="1440" text-anchor="middle" class="pipe-title">14. HTP / HVX / HMX kernel 실행</text>
+            <text x="360" y="1460" text-anchor="middle" class="pipe-desc">NPU 코어 내부에서 실제 matmul 등의 연산 수행</text>
+            <text x="360" y="1478" text-anchor="middle" class="pipe-desc">(HMX / HVX-tiled / HVX-flat / CPU fallback 중 선택)</text>
+          </g>
+        </svg>
+        <figcaption>그림 1. GGUF 생성부터 HTP/HVX/HMX kernel 실행까지의 14단계 파이프라인. 짝수/홀수 배경 구분은 시각적 구획일 뿐 의미상의 차이는 없습니다.</figcaption>
+      </figure>
+    </section>
+
+    <section id="gguf-container">
+      <h2><span class="num">3.</span>GGUF 파일은 무엇을 담는가</h2>
+      <p>
+        GGUF는 단순히 "가중치 숫자들이 쭉 나열된 배열"이 아닙니다. <span class="term">GGUF</span>는 컨테이너 포맷이며, 하나의 파일 안에 서로 다른 역할을 가진 네 가지 구획이 순서대로 들어 있습니다: <strong>header</strong>(매직 넘버·버전·텐서 개수 등), <strong>metadata</strong>(모델에 대한 key-value 정보), <strong>tensor info</strong>(각 텐서의 이름·shape·타입·offset), 그리고 <strong>tensor data</strong>(실제 weight bytes가 들어 있는 큰 바이너리 블록)입니다.
+      </p>
+      <p>metadata에는 예를 들어 이런 키들이 들어갑니다.</p>
+      <ul>
+        <li><code>general.architecture</code> — 이 모델이 어떤 아키텍처(예: gemma, llama)인지</li>
+        <li><code>general.name</code> — 모델 이름</li>
+        <li><code>&lt;arch&gt;.embedding_length</code> — hidden state / embedding 차원 수</li>
+        <li><code>general.file_type</code> — 전체 파일이 어떤 양자화 타입 조합을 쓰는지에 대한 힌트</li>
+        <li><code>tokenizer.ggml.tokens</code> — 토크나이저 vocab 목록</li>
+      </ul>
+      <p>
+        tensor info 구획에는 <code>token_embd.weight</code>, <code>blk.0.attn_q.weight</code> 같은 이름과 함께 각 텐서의 shape, 데이터 타입(F32, F16, Q4_0 등), 그리고 tensor data 블록 내에서의 byte offset이 기록됩니다. 실제 weight 숫자들은 이 offset을 따라 tensor data 영역에 순서대로 이어 붙어 있습니다.
+      </p>
+      <div class="callout">
+        <strong>혼동하기 쉬운 지점</strong> — "GGUF는 nibble-packed 포맷이다"라는 말은 정확하지 않습니다. <strong>GGUF 파일 전체가 nibble-packed인 것이 아니라, Q4_0 타입으로 지정된 개별 텐서의 tensor data 영역만 nibble-packed <code>block_q4_0</code> 형식</strong>입니다. 같은 GGUF 파일 안에서도 어떤 텐서는 F32로, 어떤 텐서는 F16으로, 어떤 텐서는 Q4_0으로 저장될 수 있고, 이는 <code>general.file_type</code> 메타데이터와 각 텐서의 개별 타입 필드에 의해 결정됩니다.
+      </div>
+    </section>
+
+    <section id="q4-quant">
+      <h2><span class="num">4.</span>Q4_0 양자화: FP16 32개가 Q4_0 block 하나가 되는 과정</h2>
+      <p>
+        Q4_0의 기본 단위는 <span class="term">block</span>입니다. FP16 weight <strong>32개</strong>를 하나의 block으로 묶어서, 그 32개 값을 대표할 수 있는 <strong>scale 값 1개</strong>와 각 weight를 4비트로 근사한 <strong>code 32개</strong>로 바꿉니다. 여기서 반드시 짚고 넘어가야 할 오해가 있습니다.
+      </p>
+      <div class="callout">
+        <strong>block 하나 = weight 32개 + scale 1개이지, weight 33개가 아닙니다.</strong> scale은 "33번째 weight"가 아니라, 나머지 32개의 4bit code를 원래 크기의 값으로 복원하기 위한 기준값(곱셈 계수)입니다. code 하나만으로는 "대략 몇 배 크기인지"를 알 수 없기 때문에, block 전체가 공유하는 scale과 곱해야 비로소 근사된 원래 weight 값이 나옵니다.
+      </div>
+      <p>양자화(복원) 관계식은 대략 다음과 같습니다.</p>
+      <pre><code>// 개념 설명용 pseudo-code — 실제 llama.cpp 구현의 세부 인덱싱과는 다를 수 있음
+struct block_q4_0 {
+    fp16  scale;      // 이 block 32개 weight를 대표하는 배율값 (2 bytes)
+    uint8 qs[16];      // 4bit code 32개 = 16 bytes (한 byte에 code 2개)
+};
+
+// 복원(dequantize) 개념
+weight[i] ≈ scale * (code[i] - 8)   // code는 0~15 범위의 4bit 값</code></pre>
+      <p>
+        byte 크기로 계산해 보면 압축 효과가 분명해집니다. FP16 weight 32개는 <code>32 × 2 bytes = 64 bytes</code>입니다. 같은 32개를 Q4_0 block 하나로 바꾸면 <code>scale 2 bytes + qs 16 bytes = 18 bytes</code>가 됩니다. 정확히 4배는 아니고(scale 오버헤드 때문에) 약 3.56배 압축입니다.
+      </p>
+      <table>
+        <thead><tr><th>항목</th><th>FP16</th><th>Q4_0</th></tr></thead>
+        <tbody>
+          <tr><td>weight 32개</td><td class="num">64 bytes</td><td class="num">scale 2B + qs 16B = 18 bytes</td></tr>
+          <tr><td>압축 비율</td><td class="num">1×</td><td class="num">약 3.56×</td></tr>
+        </tbody>
+      </table>
+      <h3>embedding 차원에 적용해 보기</h3>
+      <p>
+        embedding 차원이 <code>d_embedding = 1024</code>인 모델을 예로 들면, 한 토큰의 embedding row는 1024개의 값으로 이루어져 있습니다. 이를 32개 단위 block으로 나누면 <code>1024 / 32 = 32 blocks</code>가 됩니다.
+      </p>
+      <table>
+        <thead><tr><th>d_embedding</th><th>block 개수</th><th>FP16 row 크기</th><th>Q4_0 row 크기</th></tr></thead>
+        <tbody>
+          <tr><td>1024</td><td class="num">1024 / 32 = 32</td><td class="num">1024 × 2 = 2048 bytes</td><td class="num">32 × 18 = 576 bytes</td></tr>
+          <tr><td>768</td><td class="num">768 / 32 = 24</td><td class="num">768 × 2 = 1536 bytes</td><td class="num">24 × 18 = 432 bytes</td></tr>
+        </tbody>
+      </table>
+      <p>아래 그림은 하나의 Q4_0 block이 scale 1개와 16개의 byte(=32개의 4bit code)로 구성됨을 보여줍니다.</p>
+      <figure>
+        <div class="block-diagram">
+          <div class="scale-box">scale<br>(FP16, 2 bytes)<br><span style="font-weight:400; font-size:11px;">block 전체의 복원 기준값</span></div>
+          <div class="qs-grid" id="qs-grid"></div>
+        </div>
+        <figcaption>그림 2. Q4_0 block 하나 = scale 1개(2 bytes) + qs[0..15] 16 bytes(각 byte에 4bit code 2개, 총 32개 code). 총 18 bytes가 FP16 64 bytes를 대체합니다.</figcaption>
+      </figure>
+      <p>여기서 <code>d=768</code> 사례처럼 24 blocks로 나눠지는 경우처럼, embedding 차원이 32의 배수가 아니면 block 경계 처리 방식은 <span class="tag tag-impl">구현마다 다름</span> — padding을 두는지, 다른 quant type을 섞는지는 quantize 스크립트와 llama.cpp 버전에 따라 달라질 수 있습니다.</p>
+      <figure>
+        <div class="bar-row">
+          <div class="bar-label">d=1024, FP16</div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%;">2048 bytes</div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">d=1024, Q4_0</div>
+          <div class="bar-track"><div class="bar-fill small" style="width:28.1%;">576 bytes</div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">d=768, FP16</div>
+          <div class="bar-track"><div class="bar-fill" style="width:75%;">1536 bytes</div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">d=768, Q4_0</div>
+          <div class="bar-track"><div class="bar-fill small" style="width:21.1%;">432 bytes</div></div>
+        </div>
+        <figcaption>그림 2-1. 토큰 하나의 embedding row가 차지하는 byte 크기 비교 (FP16 대비 Q4_0). 막대 길이는 2048 bytes를 100%로 둔 상대 비율입니다.</figcaption>
+      </figure>
+    </section>
+
+    <section id="nibble">
+      <h2><span class="num">5.</span>Nibble Packing: 4bit를 1byte 안에 두 개씩 담기</h2>
+      <p>
+        <span class="term">nibble</span>은 4bit짜리 조각을 가리키는 이름입니다. 1 byte는 8bit이므로, nibble 두 개를 정확히 담을 수 있습니다. 관례적으로 byte의 하위 4bit을 <strong>lower nibble</strong>, 상위 4bit을 <strong>upper nibble</strong>이라고 부릅니다. Q4_0의 <code>qs</code> 배열은 이런 식으로 4bit code 두 개를 byte 하나에 우겨넣어 저장합니다 — 이것이 "GGUF Q4_0 tensor의 tensor data 저장 형식"이 <strong>nibble packing</strong>이라 불리는 이유입니다.
+      </p>
+      <p>비트 연산으로 표현하면, 어떤 byte 값에서 lower/upper nibble을 꺼내는 방법은 다음과 같습니다.</p>
+      <pre><code>byte = 0xC3;               // 1100 0011 (2진수)
+
+lower = byte &amp; 0x0F;        // 하위 4bit만 남김 → 0011 → 십진수 3
+upper = byte &gt;&gt; 4;          // 상위 4bit을 오른쪽으로 밀어냄 → 1100 → 십진수 12
+
+// Q4_0는 이 4bit 값(0~15)에 -8을 적용해 대략 -8~7 범위의 signed code처럼 사용
+lower_code = lower - 8;     // 3 - 8 = -5
+upper_code = upper - 8;     // 12 - 8 = 4
+
+// 최종 weight 근사값 = scale * code
+</code></pre>
+      <p>
+        즉 하나의 byte <code>0xC3</code>는 서로 다른 두 weight의 code를 담고 있는 셈입니다. lower nibble에서 나온 <code>-5</code>와 upper nibble에서 나온 <code>4</code>는 각각 block의 scale과 곱해져 원래 weight의 근사값으로 복원됩니다.
+      </p>
+      <div class="callout warn">
+        <strong>구현 확인 필요</strong> — 여기서 설명한 "byte 하나 = 인접한 weight 두 개"라는 매핑은 개념을 이해하기 위한 단순화입니다. 실제 llama.cpp의 <code>quantize_row_q4_0</code> / <code>dequantize_row_q4_0</code> 구현에서는 <code>qs[j]</code>의 lower/upper nibble이 <code>weight[j]</code>, <code>weight[j+16]</code>처럼 서로 16칸 떨어진 위치에 매핑되는 등, 단순 짝수/홀수 순서(q0, q1, q2...)와는 다른 인덱싱을 쓸 수 있습니다. 이 문서는 <strong>nibble packing이라는 개념 자체</strong>를 설명하는 것이 목적이며, 정확한 인덱스 순서는 실제 소스 코드로 확인해야 합니다.
+      </div>
+    </section>
+
+    <section id="activation">
+      <h2><span class="num">6.</span>Activation이란 무엇인가 — activation function이 아니다</h2>
+      <p>
+        이 문서에서 가장 자주 오해가 생기는 단어가 <span class="term">activation</span>입니다. 딥러닝을 처음 배울 때 activation이라는 단어는 ReLU, GELU 같은 <strong>activation function</strong>을 먼저 떠올리게 만들지만, matmul/kernel 최적화 맥락에서 activation은 그것이 아닙니다.
+      </p>
+      <div class="callout">
+        <strong>matmul 관점에서 activation은 "현재 계산에 입력으로 들어가는 tensor", 즉 hidden state입니다.</strong> 예를 들어 attention의 Query projection은 <code>q_cur = Wq × normed_hidden</code>처럼 계산되는데, 여기서 <code>Wq</code>는 weight(고정된 학습 파라미터)이고 <code>normed_hidden</code>이 바로 activation입니다. 즉 activation function을 통과한 결과물이라는 좁은 의미가 아니라, "이번 matmul의 입력으로 흘러 들어오는 값"이라는 더 넓은 의미로 쓰입니다.
+      </div>
+      <p>
+        이 구분이 왜 중요한가 하면, weight와 activation은 성격이 완전히 다르기 때문입니다. weight는 학습이 끝난 뒤 <strong>고정된 값</strong>이므로, 모델을 배포하기 전에 미리 Q4_0으로 양자화해서 파일에 구워 넣을 수 있습니다. 반면 activation(=hidden state)은 토큰마다, 레이어마다, 입력 문장마다 <strong>실시간으로 달라지는 값</strong>입니다. 그래서 activation은 GGUF 파일 안에 미리 저장해 둘 수가 없고, 추론이 실행되는 매 순간 그 자리에서 계산되어야 합니다.
+      </p>
+      <p>
+        따라서 실제 matmul 커널 안에서는 weight 쪽만 Q4_0 형태로 미리 준비되어 있고, activation 쪽은 런타임에 FP16/F32 형태 그대로 쓰이거나, 필요하다면 Q8_0처럼 좀 더 정밀도가 높은 8bit 형태로 즉석에서(on-the-fly) 양자화되어 block/tile 단위로 준비될 수 있습니다. 어느 방식을 쓰는지는 <span class="tag tag-impl">backend 구현마다 다름</span> — 이는 HTP backend가 activation을 FP16 그대로 넘기는지, Q8로 변환해서 넘기는지에 따라 달라지는 부분입니다.
+      </p>
+    </section>
+
+    <section id="matmul-compare">
+      <h2><span class="num">7.</span>FP16 matmul과 Q4_0 matmul 비교</h2>
+      <h3>FP16 matmul</h3>
+      <p>
+        가장 단순한 경우인 FP16 matmul에서는, 32개 weight를 읽으려면 <code>64 bytes</code>를 메모리에서 읽어야 하고, 그 값과 activation을 그대로 FP16 multiply-add로 누산합니다. 구조는 단순하지만, weight 하나하나가 2 bytes를 차지하므로 <strong>weight memory traffic이 큽니다</strong>. 대규모 언어모델에서는 decode 단계마다 이 weight들을 반복해서 읽어야 하므로, 이 memory traffic이 실제 속도를 좌우하는 병목이 되는 경우가 많습니다.
+      </p>
+      <h3>Naive Q4_0 matmul (비권장 경로)</h3>
+      <p>
+        Q4_0을 도입할 때 가장 이해하기 쉬운 방법은, block 전체를 통째로 FP16/F32로 <strong>dequantize</strong>해서 임시 weight buffer를 만든 다음, 그 임시 buffer로 기존과 동일한 FP16 matmul을 수행하는 것입니다. 이 방식은 개념적으로는 쉽지만, dequantize에 드는 연산과 임시 buffer용 메모리 대역폭을 추가로 써버리기 때문에 <strong>Q4_0이 주는 이점을 상당 부분 잃습니다</strong>. 즉 "일단 원래 크기로 풀어서 계산한다"는 접근은 압축의 목적(메모리 절감)을 스스로 무너뜨리는 셈입니다.
+      </p>
+      <h3>Optimized Q4_0 matmul (실제로 이득을 보는 경로)</h3>
+      <p>
+        실제로 속도 이득을 보려면 dequantize를 별도의 큰 단계로 분리하지 않고, block/tile 단위로 다음 과정을 <strong>dot product 계산 자체에 녹여 넣습니다</strong>.
+      </p>
+      <ol>
+        <li>block 단위로 Q4 weight(scale + qs 18 bytes)를 읽는다</li>
+        <li>nibble을 unpack해 4bit code들을 꺼낸다</li>
+        <li>같은 구간의 activation block을 읽거나(FP16), 미리 Q8로 준비된 activation block을 읽는다</li>
+        <li>정수 dot product(integer dot) 또는 mixed-precision dot을 수행한다</li>
+        <li>그 결과에 block scale을 곱한다</li>
+        <li>여러 block의 결과를 누산(accumulate)한다</li>
+      </ol>
+      <div class="callout">
+        <strong>핵심 포인트</strong> — "dequantize"라는 이름의 별도 단계가 크게 따로 존재하는 것이 아니라, unpack과 scale 적용이 dot product 루프 안에 <strong>녹아 들어가 있는 형태(fused)</strong>입니다. 이렇게 하면 weight를 원래 크기로 복원한 임시 버퍼를 메모리에 다시 쓰고 다시 읽는 왕복 비용이 사라집니다.
+      </div>
+      <p>단, 이 최적화 경로는 backend와 하드웨어 조건이 맞을 때만 실제로 타게 됩니다. 조건이 맞지 않아 fallback 경로(예: naive dequantize 경로나 CPU 범용 경로)로 빠지면, Q4_0을 쓰더라도 기대했던 만큼의 속도 이득은 줄어들 수 있습니다 — 이는 <span class="tag tag-impl">backend/조건에 따라 다름</span>.</p>
+    </section>
+
+    <section id="why-fast">
+      <h2><span class="num">8.</span>Scale이 있는데 왜 빨라지는가</h2>
+      <p>
+        여기서 자연스러운 의문이 생깁니다: "FP16은 그냥 곱하고 더하면 끝인데, Q4_0은 scale까지 곱해야 하니 연산이 하나 더 늘어난 것 아닌가? 그런데 왜 더 빠르다고 하는가?" 이 질문에 답하려면 수식을 조금 풀어볼 필요가 있습니다.
+      </p>
+      <pre><code>// 원래 하고 싶은 계산 (32개 항의 dot product)
+sum_i  activation_i * weight_i
+
+// Q4_0 + activation quantization을 적용하면 이렇게 근사됨
+sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
+  = scale_a * scale_w * sum_i( a_i_int8 * q_i_int4 )</code></pre>
+      <p>
+        FP16 계산에는 이런 scale 곱이 없으니, 딱 이 수식 하나만 놓고 보면 Q4_0 쪽이 더 복잡해 보이는 것이 사실입니다. 하지만 여기서 짚어야 할 것은 <strong>"연산 개수"와 "실행 비용"은 다른 개념</strong>이라는 점입니다.
+      </p>
+      <p>
+        32개 항을 곱하고 더하는 dot product의 <em>수학적 항 개수</em>는 FP16이든 Q4_0이든 동일하게 32개입니다. Q4_0이 빨라지는 이유는 이 항의 개수를 줄여서가 아니라, 다음 몇 가지 요인이 겹쳐서입니다.
+      </p>
+      <ul>
+        <li><strong>weight memory bandwidth 절감</strong> — 32개 weight를 읽는 데 64 bytes 대신 18 bytes만 읽으면 되므로, 특히 decode처럼 weight를 매번 새로 읽어야 하는 memory-bound 상황에서 이득이 큽니다.</li>
+        <li><strong>cache/VTCM 효율</strong> — 더 작은 데이터가 더 좁은 온칩 캐시나 HTP의 VTCM(scratchpad memory)에 더 많이 들어갈 수 있어, 반복 접근 시 재사용률이 올라갑니다.</li>
+        <li><strong>packed/vector dot 연산</strong> — 4bit로 눌러 담긴 데이터는 벡터 유닛이 한 번에 더 많은 code를 동시에 처리(packed integer dot)할 수 있게 해줍니다.</li>
+        <li><strong>scale 비용의 block 단위 amortization</strong> — scale 곱셈은 원소 하나마다가 아니라 <strong>block(32개)마다 한 번</strong>만 일어납니다. 즉 scale 곱 1회의 비용을 32개 원소가 나눠 짊어지므로(amortize), 원소당 추가 비용은 매우 작습니다.</li>
+      </ul>
+      <div class="callout">
+        <strong>정리</strong> — Q4_0의 이득은 "곱셈 덧셈 항의 개수를 줄여서"가 아니라, <strong>weight를 읽어오는 byte 수와 하드웨어에 데이터를 공급(feeding)하는 비용을 줄여서</strong> 생깁니다. 특히 LLM decode처럼 한 번에 토큰 하나씩만 처리하면서 거대한 weight 행렬 전체를 훑어야 하는 상황(=memory-bound)에서는, 연산 자체보다 "weight를 얼마나 빨리 가져올 수 있는가"가 속도를 좌우하기 때문에 이 memory bandwidth 절감 효과가 두드러집니다.
+      </div>
+    </section>
+
+    <section id="layout">
+      <h2><span class="num">9.</span>Row-major와 Tile-major layout</h2>
+      <p>
+        weight 데이터를 메모리에 어떤 <em>순서</em>로 늘어놓을지는 그 자체로 성능에 큰 영향을 줍니다. 이해를 돕기 위해 실제 block size(32) 대신, 작은 예시로 <strong>4 rows × 8 cols</strong> 행렬을 block size 2로 나눈 경우를 살펴보겠습니다.
+      </p>
+      <p>
+        <strong>row-major</strong> 저장은 우리가 흔히 생각하는 방식입니다: 첫 번째 row의 block들을 순서대로 다 쓴 다음, 두 번째 row의 block들을 순서대로 쓰는 식입니다.
+      </p>
+      <figure>
+        <div class="layout-tables">
+          <div>
+            <p style="font-weight:700; font-size:13px; margin-bottom:6px;">Row-major 저장 순서</p>
+            <div class="mini-grid">
+              <div class="mini-cell b0">r0 b0</div><div class="mini-cell b0">r0 b0</div>
+              <div class="mini-cell b1">r0 b1</div><div class="mini-cell b1">r0 b1</div>
+              <div class="mini-cell b2">r0 b2</div><div class="mini-cell b2">r0 b2</div>
+              <div class="mini-cell b3">r0 b3</div><div class="mini-cell b3">r0 b3</div>
+              <div class="mini-cell b0">r1 b0</div><div class="mini-cell b0">r1 b0</div>
+              <div class="mini-cell b1">r1 b1</div><div class="mini-cell b1">r1 b1</div>
+              <div class="mini-cell b2">r1 b2</div><div class="mini-cell b2">r1 b2</div>
+              <div class="mini-cell b3">r1 b3</div><div class="mini-cell b3">r1 b3</div>
+            </div>
+            <p style="font-size:12px; color:var(--fg-muted); margin-top:8px;">저장 순서: row0.block0, row0.block1, row0.block2, row0.block3, row1.block0 …</p>
+          </div>
+          <div>
+            <p style="font-weight:700; font-size:13px; margin-bottom:6px;">Tile-major 저장 순서 (2-row 타일)</p>
+            <div class="mini-grid">
+              <div class="mini-cell b0">r0 b0</div><div class="mini-cell b0">r0 b0</div>
+              <div class="mini-cell b0">r1 b0</div><div class="mini-cell b0">r1 b0</div>
+              <div class="mini-cell b1">r0 b1</div><div class="mini-cell b1">r0 b1</div>
+              <div class="mini-cell b1">r1 b1</div><div class="mini-cell b1">r1 b1</div>
+              <div class="mini-cell b2">r0 b2</div><div class="mini-cell b2">r0 b2</div>
+              <div class="mini-cell b2">r1 b2</div><div class="mini-cell b2">r1 b2</div>
+              <div class="mini-cell b3">r0 b3</div><div class="mini-cell b3">r0 b3</div>
+              <div class="mini-cell b3">r1 b3</div><div class="mini-cell b3">r1 b3</div>
+            </div>
+            <p style="font-size:12px; color:var(--fg-muted); margin-top:8px;">저장 순서: (row0~1).block0, (row0~1).block1, (row0~1).block2 …</p>
+          </div>
+        </div>
+        <figcaption>그림 3. 같은 4×8 데이터라도 row-major는 "행을 다 채우고 다음 행으로", tile-major는 "여러 행을 묶은 타일 안에서 같은 block 위치를 먼저 모으고 다음 block으로" 이동합니다. 색상은 block 번호(b0~b3)를 의미합니다.</figcaption>
+      </figure>
+      <p>
+        이 개념을 실제 HTP 관점의 크기로 확장하면, 예를 들어 <strong>32 rows × 32 K-values</strong> 크기의 타일을 기준으로, "rows 0~31의 K0~31"을 먼저 전부 모아서 저장하고, 그다음 "rows 0~31의 K32~63"을 모아서 저장하는 식으로 진행됩니다. 즉 K(입력 차원) 방향으로 32개씩 잘라, 그 구간에 대해 32개 row(출력 채널)를 한꺼번에 훑을 수 있는 순서로 데이터를 미리 정리해 두는 것입니다.
+      </p>
+      <div class="callout">
+        <strong>tile-major layout의 의미</strong> — 이것은 새로운 양자화 방식이 아니라, <strong>HTP kernel이 실제로 데이터를 읽는 순서에 맞춰 미리 정리해 두는 재배치</strong>입니다. kernel이 한 번에 32개 output row에 대해 같은 activation 구간을 재사용하면서 연산하고 싶다면, weight도 그 순서에 맞게 미리 늘어서 있는 편이 캐시/VTCM에서 연속적으로 읽기에 유리합니다. row-major 그대로 두면 이런 재사용 패턴을 만들기 위해 매번 건너뛰며 읽어야 하므로 비효율적입니다.
+      </div>
+    </section>
+
+    <section id="htp0-repack">
+      <h2><span class="num">10.</span>HTP0-REPACK: 재양자화가 아니라 layout 재배치</h2>
+      <p>
+        <code>HTP0-REPACK</code>이라는 이름 때문에 "다시 양자화하는 과정인가?"라고 오해하기 쉽지만 그렇지 않습니다. <strong>HTP0-REPACK은 이미 Q4_0으로 양자화되어 있는 weight를, 값은 그대로 둔 채, HTP kernel이 선호하는 tile-major/aligned 레이아웃으로 다시 포장한 buffer</strong>입니다. 즉 quantize(정밀도를 낮추는 과정)가 아니라 pack/layout 변환(바이트 순서를 바꾸는 과정)입니다.
+      </p>
+      <pre><code>// 개념적인 HTP0-REPACK 과정 (실제 구현의 세부 순서와는 다를 수 있음)
+1. GGUF에서 Q4_0 block(scale + qs)을 읽는다
+2. scale과 qs를 각각 읽어온다
+3. 필요하면 nibble을 unpack한 뒤 원하는 순서로 다시 repack한다
+4. 32x32 같은 tile 단위로 데이터를 재배치한다   (row-major → tile-major)
+5. scale들의 저장 위치도 tile에 맞춰 재배치한다
+6. HTP가 요구하는 byte 정렬(예: 64/128 byte alignment)에 맞춰 padding을 넣는다
+7. 결과를 HTP0-REPACK buffer에 저장한다</code></pre>
+      <p>
+        여기서 <span class="tag tag-confirmed">확정</span>적으로 말할 수 있는 것은, HTP0-REPACK이 값 자체(scale, code)를 바꾸지 않는다는 점입니다. bit 단위로 표현되는 숫자적인 정보량은 동일하되, 그 바이트들이 메모리 상에서 어떤 순서로 나열되는지만 바뀝니다.
+      </p>
+      <div class="callout warn">
+        <strong>PoC에서 실제로 부딪히는 리스크</strong> — <code>token_embd.weight</code> 같은 input embedding 텐서가 <code>CPU_Mapped</code> buffer에 그대로 남아 있으면, embedding 조회 연산인 <code>GET_ROWS</code>가 HTP 실행 경로를 타지 못할 수 있습니다 <span class="tag tag-maybe">가능성</span>. transformer block 내부의 weight(attn_q, attn_k, ffn_up 등)는 HTP0-REPACK 대상이 될 여지가 있지만, input layer(embedding)를 어떻게 다룰지는 backend의 placement 정책에 따라 달라질 수 있습니다 <span class="tag tag-impl">구현마다 다름</span>. 따라서 PoC에서는 "이 텐서가 정말 HTP0-REPACK 버퍼에 배치되었는가"를 <code>load_tensors</code> 단계의 placement 로그로 직접 확인하는 작업이 꼭 필요합니다.
+      </div>
+    </section>
+
+    <section id="graph-scheduler">
+      <h2><span class="num">11.</span>Graph Build와 Scheduler</h2>
+      <p>
+        모델이 로드된 뒤, 추론을 실행하기 전에 llama.cpp는 실제 계산을 곧바로 수행하지 않고 먼저 <strong>연산 그래프</strong>를 만듭니다. 이 단계에서 자주 등장하는 함수들의 역할을 명확히 구분할 필요가 있습니다.
+      </p>
+      <ul>
+        <li><code>create_tensor</code> — 이름 그대로 "텐서를 만든다"고 하면 Q4 bytes를 새로 계산하는 것처럼 들리지만, 실제로는 <strong>텐서의 이름·shape·타입을 정의</strong>하는 함수에 가깝습니다. 실제 weight bytes는 이미 GGUF tensor data에 있고, 이 함수는 그 데이터를 가리킬 "자리"를 만드는 역할입니다.</li>
+        <li><code>build_attn</code>, <code>build_ffn</code>, <code>ggml_mul_mat</code> — 이 함수들을 호출한다고 해서 그 순간 행렬곱이 실행되는 것이 아닙니다. 이들은 "이런 계산이 필요하다"는 <strong>그래프 노드</strong>를 만들 뿐이며, 실제 실행은 나중에 별도로 이루어집니다.</li>
+        <li><code>ggml_build_forward_expand</code> — 만들어진 노드들과 그 사이의 의존 관계(dependency)를 최종 그래프에 등록하는 역할을 합니다.</li>
+      </ul>
+      <p>
+        그래프가 완성되면 <strong>scheduler</strong>가 각 노드를 어떤 backend(CPU / HTP / GPU)에서 실행할지 결정합니다. 이때 사용하는 판단 기준이 <code>supports_op</code>(이 backend가 이 연산 종류를 지원하는가)와 <code>supports_buft</code>(이 연산에 연결된 버퍼 타입이 이 backend와 호환되는가)입니다.
+      </p>
+      <div class="callout">
+        <strong>중요한 구분</strong> — <code>supports_op</code>가 true라고 해서 그 연산이 반드시 HTP에서 실행된다는 뜻은 아닙니다 <span class="tag tag-maybe">가능성</span>. 최종 실행 backend는 그 연산에 연결된 입력/출력 buffer가 실제로 그 backend와 호환되는지(<code>supports_buft</code>), 그리고 scheduler의 전체적인 split 알고리즘(어떤 조합이 전체적으로 더 효율적인지)까지 함께 고려한 결과로 정해집니다. "op는 지원되지만 buffer 위치 때문에 결국 CPU로 떨어지는" 경우도 실무에서 흔히 발생합니다.
+      </div>
+    </section>
+
+    <section id="htp-compute">
+      <h2><span class="num">12.</span>HTP graph_compute와 HMX/HVX kernel</h2>
+      <p>
+        scheduler가 어떤 노드를 HTP에서 실행하기로 결정하면, <code>HTP graph_compute</code>라는 host-side(즉 NPU가 아니라 CPU 쪽에서 도는) 준비 코드가 그 노드들을 실제 DSP 작업으로 바꿔주는 역할을 합니다. 이 단계가 하는 일은 대략 다음과 같이 정리할 수 있습니다.
+      </p>
+      <ul>
+        <li>graph를 캐시해 두고 재사용 가능한 부분을 구분한다 (graph cache)</li>
+        <li>실행해야 할 compute node들을 추출한다</li>
+        <li>가능한 연산들을 하나로 묶는다 (fusion)</li>
+        <li>GGML의 범용 연산자를 HTP 고유의 opcode로 매핑한다 (op remap)</li>
+        <li>matmul에 필요한 shape/stride 등의 파라미터를 계산한다</li>
+        <li>VTCM(온칩 scratchpad 메모리) 사용량이 허용 범위인지 확인한다</li>
+        <li>준비된 작업을 <code>dspqueue</code>에 enqueue해서 실제 DSP 코어로 넘긴다</li>
+      </ul>
+      <p>
+        이렇게 DSP로 넘어간 작업은 실제 Hexagon 코어 내부의 여러 실행 경로 중 하나를 타게 됩니다. 이 경로들은 일반적인 HTP/HVX/HMX kernel 관점에서 다음과 같이 구분해 볼 수 있습니다 — 정확한 내부 스케줄링 로직은 Qualcomm의 비공개 구현 영역이므로, 아래는 공개된 개념과 코드 관찰에 기반한 일반화된 설명입니다.
+      </p>
+      <ul>
+        <li><strong>HMX (Hexagon Matrix eXtension)</strong> — 행렬곱 자체에 특화된 하드웨어 유닛을 사용하는 path <span class="tag tag-maybe">가능성</span></li>
+        <li><strong>HVX tiled</strong> — 벡터 연산 유닛(HVX)을 쓰되, 타일 단위로 정렬된 레이아웃을 활용하는 path</li>
+        <li><strong>HVX flat</strong> — 타일 최적화 없이 좀 더 단순한 벡터 연산으로 처리하는, 상대적으로 fallback 성격의 path</li>
+        <li><strong>CPU fallback</strong> — HTP 실행 조건이 맞지 않을 때 결국 CPU 범용 코드로 처리되는 경로</li>
+      </ul>
+      <figure>
+        <div class="flow">
+          <div class="flow-step"><div class="step-title">HTP graph_compute (host-side)</div><div class="step-desc">graph cache 확인 → compute node 추출 → fusion → op remap → matmul 파라미터 계산 → VTCM 체크</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">dspqueue enqueue</div><div class="step-desc">준비된 작업 descriptor를 DSP 실행 큐에 제출</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-branch">
+            <div class="flow-step hmx"><div class="step-title">HMX path</div><div class="step-desc">행렬곱 특화 유닛 사용</div></div>
+            <div class="flow-step hvx-t"><div class="step-title">HVX tiled path</div><div class="step-desc">벡터 유닛 + 정렬된 tile layout</div></div>
+            <div class="flow-step hvx-f"><div class="step-title">HVX flat path</div><div class="step-desc">비정형 fallback 성격 벡터 연산</div></div>
+            <div class="flow-step cpu"><div class="step-title">CPU fallback</div><div class="step-desc">HTP 조건 미충족 시</div></div>
+          </div>
+        </div>
+        <figcaption>그림 4. HTP graph_compute가 준비한 작업이 dspqueue를 거쳐 HMX/HVX/CPU 중 하나의 실행 경로로 분기하는 흐름 (개념도).</figcaption>
+      </figure>
+      <p>
+        이 경로들이 일반적인 CPU for-loop 기반 matmul과 근본적으로 다른 지점은, 데이터를 <strong>한 원소씩</strong>이 아니라 <strong>타일(tile) 단위로 한꺼번에 공급</strong>한다는 점입니다. CPU의 단순 for-loop는 메모리에서 값을 하나씩(또는 SIMD 폭만큼) 읽어와 곧바로 계산하는 반면, HMX/HVX 경로는 미리 정렬된 tile 데이터를 VTCM이라는 온칩 scratchpad에 올려두고, packed data 형태와 벡터 lane을 최대한 활용해 여러 원소를 동시에 처리합니다. 이 방식이 성능을 내려면 데이터가 이미 정해진 alignment와 layout(즉 앞서 설명한 tile-major, HTP0-REPACK)을 전제로 깔고 있어야 하며, 이 전제가 깨지면 최적화된 경로 대신 flat/fallback 경로로 빠지게 됩니다.
+      </p>
+    </section>
+
+    <section id="decode-step">
+      <h2><span class="num">13.</span>Decode 1 Step 예시</h2>
+      <p>
+        지금까지의 개념들이 실제 추론 한 스텝(토큰 하나를 생성하는 과정)에서 어떻게 이어지는지 순서대로 따라가 보겠습니다.
+      </p>
+      <figure>
+        <div class="flow">
+          <div class="flow-step"><div class="step-title">입력: token id</div><div class="step-desc">직전에 생성되었거나 프롬프트에서 온 토큰 하나</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">GET_ROWS (embedding lookup)</div><div class="step-desc">token_embd.weight에서 해당 토큰의 embedding row를 가져옴</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">RMSNorm</div><div class="step-desc">layer 0 진입 전 정규화 (normed_hidden 생성 = activation)</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">Q / K / V matmul</div><div class="step-desc">Wq/Wk/Wv (Q4_0 weight) × normed_hidden (activation)</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">RoPE 적용</div><div class="step-desc">Q, K에 위치 정보를 회전(rotary) 형태로 주입</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">KV cache write / read</div><div class="step-desc">이번 스텝의 K,V를 캐시에 기록하고, 과거 K,V를 함께 읽음</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">Attention (softmax(QK^T)V)</div><div class="step-desc">현재 Q와 캐시된 K,V로 attention score 및 가중합 계산</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">Output projection</div><div class="step-desc">attention 결과를 Wo (Q4_0 weight)로 다시 매핑</div></div>
+          <div class="flow-arrow-down">↓</div>
+          <div class="flow-step"><div class="step-title">FFN matmul</div><div class="step-desc">Wup/Wgate/Wdown (Q4_0 weight) × FFN 입력 activation</div></div>
+        </div>
+        <figcaption>그림 5. Decode 한 스텝의 주요 연산 흐름. 굵게 표시된 Wq/Wk/Wv/Wo/Wup/Wgate/Wdown은 모두 Q4_0으로 사전 양자화된 weight이고, normed_hidden 등은 매 스텝 새로 계산되는 activation입니다.</figcaption>
+      </figure>
+      <p>
+        이 흐름에서 각 matmul 연산이 실제로 HTP에서 실행되려면, 앞서 설명한 것처럼 단순히 "op가 지원된다"는 것만으로는 부족합니다. 그 연산의 <strong>입력(src)과 출력(dst) buffer가 모두 HTP와 호환되는 위치에 있어야</strong> 하며, 특히 Q4_0 weight를 쓰는 matmul이라면 그 weight가 <strong>HTP0-REPACK 버퍼에 배치되어 있는지</strong>, 그리고 실행 시점에 <strong>HMX 또는 HVX tiled path</strong>를 실제로 타는지가 성능을 가르는 핵심 확인 지점이 됩니다. GET_ROWS처럼 그래프의 맨 앞에 있는 연산 하나가 CPU_Mapped 상태에 머물러 있으면, 그 뒤에 이어지는 연산들의 activation 흐름 전체가 CPU와 HTP 사이를 오가며 불필요한 복사/동기화 비용을 만들 수 있습니다.
+      </p>
+    </section>
+
+    <section id="debug-checklist">
+      <h2><span class="num">14.</span>실무 디버깅 체크포인트</h2>
+      <p>PoC를 진행하면서 "정말 Q4_0 weight가 HTP tiled matmul 경로로 실행되고 있는가"를 확인하려면, 최소한 아래 항목들을 로그나 실행 조건에서 직접 확인하는 과정이 필요합니다.</p>
+      <pre><code>[확인 체크리스트]
+1. token_embd.weight 의 타입 확인            → F16 / F32 / Q4_0 중 무엇인가
+2. token_embd.weight 의 buffer placement 확인 → CPU_Mapped 인가, HTP0 계열인가
+3. HTP0-REPACK 버퍼로 배치되었는지 여부       → load_tensors 로그에서 확인
+4. repack_q4_0_tiled(또는 유사 함수) 호출 여부 → repack 단계가 실제로 실행됐는가
+5. supports_get_rows 의 반환 사유(reason)     → 왜 HTP/CPU로 갈렸는지
+6. supports_mul_mat 의 반환 사유(reason)      → 왜 HTP/CPU로 갈렸는지
+7. supports_buft 통과 여부                    → buffer 타입 호환성 확인
+8. OPTRACE 상 CPU/HTP 노드 split 비율         → 그래프 전체에서 HTP 비중
+9. graph_compute 단계의 fusion/remap 적용 여부 → 연산이 실제로 결합/변환됐는가
+10. HMX / HVX tiled / HVX flat 중 어느 경로인지 → 실행 path 식별
+11. VTCM 부족으로 인한 fallback 발생 여부      → 용량 초과 시 flat/CPU로 밀림</code></pre>
+      <div class="callout warn">
+        <strong>가장 흔한 착각</strong> — "이 모델은 Q4_0으로 양자화되어 있다"는 사실과 "이 matmul이 실제로 Q4_0 HTP tiled path에서 실행되고 있다"는 사실은 <strong>전혀 다른 주장</strong>입니다. 전자는 GGUF 파일의 정적인 속성이고, 후자는 런타임에 buffer placement와 scheduler 판단과 커널 선택이 모두 맞아떨어져야 성립하는 동적인 사실입니다. PoC의 성공 여부를 판단할 때는 반드시 후자를 로그로 직접 확인해야 합니다.
+      </div>
+    </section>
+
+    <section id="conclusion">
+      <h2><span class="num">15.</span>마무리</h2>
+      <p>
+        Semantic Agent PoC처럼 온디바이스 NPU에서 LLM을 실제로 구동하는 프로젝트에서는, "모델이 일단 로드되고 출력이 나온다"는 것만으로는 충분하지 않습니다. 출력이 나오더라도 대부분의 연산이 CPU fallback으로 처리되고 있다면, 그것은 기술적으로는 "동작"하는 것이지만 이 PoC가 증명하고자 하는 "NPU 가속"이라는 목표는 달성하지 못한 것입니다. 그래서 데모의 성공 여부를 판단하는 진짜 기준은 <strong>"모델이 실행되었는가"가 아니라 "어떤 연산이 실제로 HTP에서 돌았는가"</strong>여야 합니다.
+      </p>
+      <p>이 문서에서 다룬 내용을 한 문장씩으로 요약하면 다음과 같습니다.</p>
+      <ul>
+        <li><strong>GGUF Q4_0</strong>은 FP16 weight를 block 단위(32개 + scale 1개)로 압축해 weight 파일 크기와 memory bandwidth 요구량을 줄입니다.</li>
+        <li><strong>HTP0-REPACK</strong>은 그렇게 작아진 weight의 값을 바꾸지 않은 채, HTP kernel이 가장 잘 소화할 수 있는 tile-major 순서로 다시 정리합니다.</li>
+        <li><strong>scheduler</strong>는 연산 그래프의 노드 하나하나를 살펴 실제로 어떤 backend(CPU/HTP/GPU)에서 실행할지를 나눕니다.</li>
+        <li><strong>HMX/HVX kernel</strong>은 tile 정렬, layout 전제, VTCM 활용이라는 조건이 모두 충족될 때 비로소 실질적인 성능 이득을 만들어냅니다.</li>
+      </ul>
+      <p>
+        이 네 가지는 서로 독립적인 조건이며, 어느 하나만 만족한다고 해서 전체가 저절로 따라오지 않습니다. PoC를 검증할 때는 이 네 단계를 각각 별도로 확인하는 습관이, 막연히 "빨라졌다/느리다"는 인상보다 훨씬 신뢰할 수 있는 근거가 됩니다.
+      </p>
+    </section>
+
+    <section id="code-keywords">
+      <h2><span class="num">16.</span>관련 코드 탐색 키워드</h2>
+      <p>
+        이 문서 작성 시점에 현재 저장소(<code>transformer_seminar</code>)에서 아래 키워드들을 검색했으나, 이 저장소는 transformer 개념 학습/세미나용 자료 모음이며 <strong>llama.cpp나 ggml-hexagon backend 소스 코드를 포함하고 있지 않습니다.</strong> 따라서 아래 항목은 모두 "현재 repo에서 확인되지 않음" 상태이며, 실제 코드 확인이 필요할 경우 llama.cpp 및 ggml(특히 hexagon backend) 저장소에서 직접 검색해야 합니다.
+      </p>
+      <table>
+        <thead><tr><th>키워드</th><th>이 문서에서의 의미</th><th>현재 repo 상태</th></tr></thead>
+        <tbody>
+          <tr><td><code>block_q4_0</code></td><td>Q4_0 block의 구조체 (scale + qs)</td><td>확인되지 않음</td></tr>
+          <tr><td><code>QK4_0</code></td><td>Q4_0 block 크기 상수 (32)</td><td>확인되지 않음</td></tr>
+          <tr><td><code>quantize_row_q4_0</code></td><td>FP32/FP16 → Q4_0 변환 함수</td><td>확인되지 않음</td></tr>
+          <tr><td><code>dequantize_row_q4_0</code></td><td>Q4_0 → FP32/FP16 복원 함수</td><td>확인되지 않음</td></tr>
+          <tr><td><code>ggml_backend_hexagon_buffer_set_tensor</code></td><td>HTP buffer에 텐서 데이터를 올리는 함수</td><td>확인되지 않음</td></tr>
+          <tr><td><code>repack_q4_0_tiled</code></td><td>Q4_0 weight를 tile-major로 재배치하는 함수(가칭)</td><td>확인되지 않음</td></tr>
+          <tr><td><code>supports_op</code></td><td>backend의 연산 지원 여부 판정 함수</td><td>확인되지 않음</td></tr>
+          <tr><td><code>supports_buft</code></td><td>backend의 buffer 타입 호환 여부 판정 함수</td><td>확인되지 않음</td></tr>
+          <tr><td><code>ggml_backend_hexagon_graph_compute</code></td><td>HTP backend의 graph 실행 진입점</td><td>확인되지 않음</td></tr>
+          <tr><td><code>HTP0-REPACK</code></td><td>HTP 전용 tile-major 재배치 buffer 이름</td><td>확인되지 않음</td></tr>
+          <tr><td><code>GET_ROWS</code></td><td>embedding lookup 연산자</td><td>확인되지 않음</td></tr>
+          <tr><td><code>MUL_MAT</code></td><td>행렬곱 연산자</td><td>확인되지 않음</td></tr>
+          <tr><td><code>HMX</code></td><td>Hexagon 행렬곱 특화 실행 유닛</td><td>확인되지 않음</td></tr>
+          <tr><td><code>HVX</code></td><td>Hexagon 벡터 실행 유닛</td><td>확인되지 않음</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="doc-footer">
+      <p>이 문서는 개념 이해를 돕기 위한 기술 해설 자료입니다. 표시된 <span class="tag tag-confirmed">확정</span> / <span class="tag tag-maybe">가능성</span> / <span class="tag tag-impl">구현마다 다름</span> 태그는 각 서술의 확실성 수준을 구분하기 위한 것이며, "가능성"과 "구현마다 다름"으로 표시된 내용은 실제 PoC 대상 llama.cpp / ggml-hexagon 소스 코드와 런타임 로그로 반드시 재확인해야 합니다. 이 HTML 파일은 외부 리소스(CDN, 폰트, 이미지, 스크립트)를 전혀 사용하지 않는 self-contained 문서이며, 인터넷 연결 없이 파일을 직접 더블클릭해 브라우저에서 열어도 동일하게 렌더링됩니다.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  (function(){
+    var grid = document.getElementById('qs-grid');
+    if(!grid) return;
+    for(var i=0;i<16;i++){
+      var lo = i*2, hi = i*2+1;
+      var cell = document.createElement('div');
+      cell.className = 'byte-cell';
+      cell.innerHTML =
+        '<div class="idx">qs['+i+']</div>' +
+        '<div class="nib lo">lower → code '+lo+'</div>' +
+        '<div class="nib hi">upper → code '+hi+'</div>';
+      grid.appendChild(cell);
+    }
+  })();
+
+  (function(){
+    var toggle = document.getElementById('toc-toggle');
+    var toc = document.getElementById('toc');
+    if(!toc) return;
+    toc.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        if(toggle) toggle.checked = false;
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
