@@ -398,6 +398,196 @@
   .b2{background:#8c7a2b;}
   .b3{background:#8c2b6f;}
 
+  /* TOC sub-list (section 11 하위 절) */
+  nav.toc .toc-sub{
+    list-style:none;
+    margin:2px 0 6px 0;
+    padding:0 0 0 14px;
+    border-left:1px solid var(--border);
+  }
+  nav.toc .toc-sub a{
+    counter-increment:none;
+    font-size:12px;
+    padding:4px 8px;
+    color:var(--fg-muted);
+  }
+  nav.toc .toc-sub a::before{content:none;}
+
+  /* graph node diagram (11-5) */
+  .graph-svg{max-width:760px; display:block; margin:0 auto; width:100%;}
+  .gnode .gname{font-weight:700; font-size:11.5px;}
+  .gnode .gop{font-size:9.5px;}
+  .gn-weight rect{fill:#e3edf7; stroke:#5f86ab;}
+  .gn-act rect{fill:#e3f2ea; stroke:#4f9c74;}
+  .gn-op rect{fill:#faedd6; stroke:#c99a4a;}
+  .gn-cache rect{fill:#ece5f7; stroke:#8a72c0;}
+  .gn-out rect{fill:#2b5b8c; stroke:#1c3f63;}
+  .gn-weight rect,.gn-act rect,.gn-op rect,.gn-cache rect,.gn-out rect{stroke-width:1.4;}
+  .gn-weight text,.gn-act text,.gn-op text,.gn-cache text{fill:#1c2430;}
+  .gn-out text{fill:#ffffff;}
+  .garrow{stroke:#8896a6; stroke-width:1.5; fill:none; marker-end:url(#garrow);}
+  .garrow-skip{stroke:#b0929a; stroke-width:1.4; fill:none; stroke-dasharray:5 4; marker-end:url(#garrow-skip);}
+  .graph-legend{
+    display:flex; flex-wrap:wrap; gap:8px 18px;
+    margin:14px 0 4px; font-size:12.5px;
+  }
+  .graph-legend span{display:inline-flex; align-items:center; gap:6px; color:var(--fg-muted);}
+  .graph-legend i{width:14px; height:14px; border-radius:4px; display:inline-block; border:1.4px solid;}
+  .lg-weight{background:#e3edf7; border-color:#5f86ab;}
+  .lg-act{background:#e3f2ea; border-color:#4f9c74;}
+  .lg-op{background:#faedd6; border-color:#c99a4a;}
+  .lg-cache{background:#ece5f7; border-color:#8a72c0;}
+  .lg-out{background:#2b5b8c; border-color:#1c3f63;}
+
+  /* section 17~19: benchmark visuals */
+  .two-col{display:flex; gap:18px; flex-wrap:wrap; margin:8px 0;}
+  .two-col > .mix-card{flex:1 1 300px;}
+  .mix-card{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    background:var(--bg-alt);
+    box-shadow:var(--shadow);
+  }
+  .mix-card h4{margin:0 0 8px; font-size:14px; color:var(--accent);}
+  .mix-card .sub{font-size:12px; color:var(--fg-muted); margin:0 0 10px;}
+  .mix-card .file-box{
+    border:1px dashed var(--node-border);
+    border-radius:8px;
+    padding:10px;
+    background:var(--node-bg);
+  }
+  .tchip{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:700;
+    padding:3px 9px;
+    margin:3px 4px 3px 0;
+    border-radius:6px;
+    border:1.4px solid;
+  }
+  .tc-q4{background:#e3edf7; border-color:#5f86ab; color:#1c2430;}
+  .tc-q6{background:#e3f2ea; border-color:#4f9c74; color:#1c2430;}
+  .tc-q8{background:#faedd6; border-color:#c99a4a; color:#1c2430;}
+  .tc-f16{background:#ece5f7; border-color:#8a72c0; color:#1c2430;}
+  .lane{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+  .lane .l{
+    flex:1 1 60px; text-align:center; font-size:11px; font-weight:700;
+    padding:8px 4px; border-radius:6px; color:#fff;
+  }
+  .bench-lanes{display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:center;}
+  .bench-lanes .col{flex:1 1 200px; text-align:center;}
+  .bench-lanes .arrow{font-size:22px; color:var(--accent); flex:0 0 auto;}
+  .model-chip{
+    display:inline-block; font-size:12.5px; font-weight:700;
+    padding:6px 12px; margin:3px; border-radius:999px;
+    background:var(--accent-soft); color:var(--fg); border:1px solid var(--node-border);
+  }
+  .pd-cols{display:flex; gap:18px; flex-wrap:wrap;}
+  .pd-cols > div{flex:1 1 300px;}
+  .pd-head{
+    font-weight:700; font-size:14px; text-align:center;
+    padding:8px; border-radius:8px 8px 0 0; color:#fff;
+  }
+  .pd-head.prefill{background:#2b6f8c;}
+  .pd-head.decode{background:#2b8c5b;}
+  .pd-body{
+    border:1px solid var(--border); border-top:none;
+    border-radius:0 0 8px 8px; padding:12px 14px;
+    background:var(--bg-alt); font-size:13px;
+  }
+
+  /* section 14: decode 1 step 개요도 (static) */
+  .da-flow{display:flex; gap:0; align-items:stretch; min-width:760px;}
+  .da-flow .fnode{
+    flex:1 1 0; border:1.5px solid var(--node-border); border-radius:9px;
+    background:var(--node-bg); padding:8px 6px; text-align:center; position:relative;
+  }
+  .da-flow .fnode .ft{font-weight:700; font-size:11.5px;}
+  .da-flow .fnode .fb{font-size:9.5px; color:var(--fg-muted); margin-top:2px;}
+  .da-flow .farrow{flex:0 0 16px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:13px;}
+  .cat-act{border-left:5px solid #4f9c74;}
+  .cat-op{border-left:5px solid #8a72c0;}
+  .cat-cache{border-left:5px solid #d1892f;}
+  .cat-out{border-left:5px solid #2b5b8c;}
+  .fbadge{
+    display:inline-block; font-size:9px; font-weight:700; margin-top:4px;
+    padding:1px 6px; border-radius:999px; border:1px solid;
+  }
+  .fb-w{background:#e3edf7; border-color:#5f86ab; color:#1c2430;}
+
+  /* section 14: interactive decode animation */
+  .decode-anim{
+    border:1px solid var(--border); border-radius:12px;
+    background:var(--bg-alt); padding:14px 16px; margin:22px 0;
+    box-shadow:var(--shadow);
+  }
+  .da-controls{
+    display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
+    padding-bottom:12px; border-bottom:1px solid var(--border); margin-bottom:14px;
+  }
+  .da-controls button{
+    font:inherit; font-size:13px; font-weight:700; cursor:pointer;
+    background:var(--accent); color:#fff; border:none;
+    padding:6px 12px; border-radius:7px;
+  }
+  .da-controls button.ghost{background:var(--node-alt-bg); color:var(--fg); border:1px solid var(--node-border);}
+  .da-controls button:hover{opacity:.9;}
+  .da-step{font-size:13px; color:var(--fg-muted);}
+  .da-step b{color:var(--accent); font-variant-numeric:tabular-nums;}
+  .da-controls input[type=range]{flex:1 1 140px; min-width:120px; accent-color:var(--accent);}
+  .da-set{display:flex; gap:8px 14px; flex-wrap:wrap; font-size:12.5px; color:var(--fg-muted); width:100%;}
+  .da-set label{display:inline-flex; align-items:center; gap:5px; cursor:pointer;}
+  .da-main{display:flex; gap:16px; flex-wrap:wrap;}
+  .da-diagram{flex:1 1 300px; position:relative; min-width:250px;}
+  .da-side{flex:1 1 300px; display:flex; flex-direction:column; gap:10px; min-width:230px;}
+  .dnode{
+    border:1.5px solid var(--node-border); border-radius:10px;
+    background:var(--node-bg); padding:8px 12px; transition:all .25s ease;
+  }
+  .dchev{text-align:center; color:var(--node-border); font-size:13px; line-height:1.1; transition:color .2s;}
+  .dchev.on{color:var(--accent);}
+  .dnode.active{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft), 0 0 16px rgba(43,91,140,0.35);
+  }
+  .dnode.dim{opacity:.5;}
+  .dn-title{font-weight:700; font-size:13.5px;}
+  .dn-graph{font-size:11px; color:var(--fg-muted); font-family:"Consolas","D2Coding",monospace; margin-top:1px;}
+  .dn-badges{margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;}
+  .dbadge{font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; border:1px solid;}
+  .db-w{background:#e3edf7; border-color:#5f86ab; color:#1c2430;}
+  .db-htp{background:#e3f2ea; border-color:#4f9c74; color:#1c2430;}
+  .db-cpu{background:#eceff2; border-color:#8b97a5; color:#1c2430;}
+  .db-path{background:#faedd6; border-color:#c99a4a; color:#1c2430;}
+  .db-warn{background:#fbe0d8; border-color:#c0533a; color:#7d2c19;}
+  .kvcells{display:flex; gap:3px; flex-wrap:wrap; margin-top:7px;}
+  .kvcell{
+    width:16px; height:16px; border-radius:3px; font-size:7px; line-height:16px;
+    text-align:center; background:var(--node-alt-bg); border:1px solid var(--border); color:var(--fg-muted);
+  }
+  .kvcell.read{background:#f6d9b6; border-color:#d1892f; color:#5a3a12;}
+  .kvcell.write{background:#d1892f; border-color:#a5661a; color:#fff; font-weight:700;}
+  .dpacket{
+    position:absolute; left:0; right:auto; z-index:3;
+    background:#2b8c5b; color:#fff; font-size:10px; font-weight:700;
+    padding:3px 8px; border-radius:999px; box-shadow:var(--shadow);
+    transition:top .4s ease; pointer-events:none; white-space:nowrap;
+    transform:translateX(-50%); left:50%;
+  }
+  .da-panel{border:1px solid var(--border); border-radius:9px; padding:11px 13px; background:var(--node-bg); font-size:13px;}
+  .da-panel h4{margin:0 0 6px; font-size:11.5px; color:var(--accent); text-transform:uppercase; letter-spacing:.04em;}
+  .da-panel .row{margin:2px 0; font-size:12.5px;}
+  .da-panel .row .k{color:var(--fg-muted); display:inline-block; min-width:96px;}
+  .da-panel code{font-size:0.86em;}
+  .da-warn{color:#b5462b; font-weight:600;}
+  .da-toy-vec{font-family:"Consolas","D2Coding",monospace; font-size:12px;}
+  .da-hint{font-size:12px; color:var(--fg-muted); margin-top:10px;}
+  @media (max-width:620px){
+    .da-side{flex-basis:100%;}
+    .da-diagram{flex-basis:100%;}
+  }
+
   footer.doc-footer{
     border-top:1px solid var(--border);
     padding-top:24px;
@@ -445,12 +635,41 @@
       <li><a href="#why-fast">Scale이 있는데 왜 빨라지는가</a></li>
       <li><a href="#layout">Row-major vs Tile-major</a></li>
       <li><a href="#htp0-repack">HTP0-REPACK</a></li>
-      <li><a href="#graph-scheduler">Graph Build와 Scheduler</a></li>
+      <li><a href="#graph-scheduler">Graph Build와 Scheduler</a>
+        <ul class="toc-sub">
+          <li><a href="#gs-create-tensor">create_tensor는 값을 만들지 않는다</a></li>
+          <li><a href="#gs-mulmat">ggml_mul_mat는 계산 노드를 만든다</a></li>
+          <li><a href="#gs-build-attn-ffn">build_attn / build_ffn</a></li>
+          <li><a href="#gs-forward-expand">ggml_build_forward_expand</a></li>
+          <li><a href="#gs-graph-shape">실제 graph 모양 (decode 1 step)</a></li>
+          <li><a href="#gs-graph-dump">graph dump 로그</a></li>
+          <li><a href="#gs-sched-split">scheduler backend split</a></li>
+          <li><a href="#gs-graph-artifacts">graph.dot / graph_nodes.txt</a></li>
+          <li><a href="#gs-poc-check">이 섹션의 PoC 체크포인트</a></li>
+        </ul>
+      </li>
       <li><a href="#htp-compute">HTP graph_compute와 HMX/HVX</a></li>
       <li><a href="#decode-step">Decode 1 Step 예시</a></li>
+      <li><a href="#decode-anim">Decode 1 Step 애니메이션</a>
+        <ul class="toc-sub">
+          <li><a href="#da-overview">전체 흐름 개요도</a></li>
+          <li><a href="#da-player">토큰 1개 decode 애니메이션</a></li>
+          <li><a href="#da-getrows">왜 GET_ROWS 하나가 중요할까</a></li>
+        </ul>
+      </li>
       <li><a href="#debug-checklist">실무 디버깅 체크포인트</a></li>
       <li><a href="#conclusion">마무리</a></li>
       <li><a href="#code-keywords">관련 코드 탐색 키워드</a></li>
+      <li><a href="#bench-verify">모델별 Benchmark와 Quant 검증</a>
+        <ul class="toc-sub">
+          <li><a href="#bench-tied">Tie Word Embedding 확인</a></li>
+          <li><a href="#bench-matrix">모델별 benchmark matrix</a></li>
+          <li><a href="#bench-mixed">Mixed Precision 정리</a></li>
+          <li><a href="#bench-q8q4">Q8 / Q4 mixed 확인 방법</a></li>
+        </ul>
+      </li>
+      <li><a href="#prefill-decode">Prefill과 Decode 측정</a></li>
+      <li><a href="#bench-plan">Benchmark 실행 계획</a></li>
     </ol>
   </nav>
 
@@ -856,6 +1075,313 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
       <div class="callout">
         <strong>중요한 구분</strong> — <code>supports_op</code>가 true라고 해서 그 연산이 반드시 HTP에서 실행된다는 뜻은 아닙니다 <span class="tag tag-maybe">가능성</span>. 최종 실행 backend는 그 연산에 연결된 입력/출력 buffer가 실제로 그 backend와 호환되는지(<code>supports_buft</code>), 그리고 scheduler의 전체적인 split 알고리즘(어떤 조합이 전체적으로 더 효율적인지)까지 함께 고려한 결과로 정해집니다. "op는 지원되지만 buffer 위치 때문에 결국 CPU로 떨어지는" 경우도 실무에서 흔히 발생합니다.
       </div>
+      <p>
+        여기까지가 graph build와 scheduler의 큰 그림입니다. 그런데 이 단계에서 실제로 무엇이 만들어지고, 그 결과 그래프가 어떤 모양이 되며, 그것을 사람이 어떻게 눈으로 확인할 수 있는지는 아직 손에 잡히지 않습니다. 아래 하위 절들에서는 <code>create_tensor</code>, <code>ggml_mul_mat</code>, <code>build_attn</code>/<code>build_ffn</code>, <code>ggml_build_forward_expand</code>가 각각 무엇을 만드는지 하나씩 짚은 뒤, 완성된 그래프의 실제 모양과 dump 로그, 그리고 scheduler가 그것을 backend별로 어떻게 쪼개는지까지 이어서 살펴봅니다.
+      </p>
+
+      <h3 id="gs-create-tensor">11-1. create_tensor는 weight 값을 만드는 단계가 아니다</h3>
+      <p>
+        <code>create_tensor</code>라는 이름은 마치 이 함수가 텐서의 내용물, 즉 Q4 bytes를 새로 계산하거나 만들어내는 것처럼 들립니다. 하지만 실제로 이 단계가 하는 일은 훨씬 소박합니다. 모델 아키텍처(예: gemma, llama)가 "이 모델에는 이러이러한 weight 텐서들이 있어야 한다"고 선언할 때, 각 weight 텐서의 <strong>이름·shape·데이터 타입, 그리고 그것이 그래프 안에서 맡을 역할</strong>을 등록해 두는 것이 이 함수의 전부입니다. 예를 들어 <code>token_embd.weight</code>, <code>blk.0.attn_q.weight</code>, <code>blk.0.attn_k.weight</code>, <code>blk.0.ffn_gate.weight</code> 같은 텐서들이 나중에 데이터를 가리키게 될 "빈 자리(핸들)"를 미리 잡아 두는 셈입니다.
+      </p>
+      <p>
+        여기서 반드시 구분해야 할 것은, 실제 weight 숫자들은 이미 GGUF 파일의 tensor data 영역에 Q4_0 bytes 형태로 들어 있다는 사실입니다. <code>create_tensor</code>는 그 bytes를 다시 만들지도, 복사하지도, 재배치하지도 않습니다. 단지 나중에 그 bytes를 가리키게 될 <code>ggml_tensor</code> 객체의 shape·type·name을 채워 넣고, 그 텐서가 어느 데이터와 연결될지를 기다리는 상태로 남겨 둘 뿐입니다. 그래서 이 단계에서 만들어진 weight 텐서는 대체로 <code>op = NONE</code>에 가깝습니다 — 즉 "무엇을 계산해서 나온 결과"가 아니라 "이미 존재하는, 그대로 읽어 오면 되는 데이터"라는 뜻입니다.
+      </p>
+      <p>
+        실제로 weight bytes가 텐서에 연결되는 것, <code>mmap</code>으로 파일을 메모리에 올리는 것, 그 텐서를 <code>CPU_Mapped</code> 버퍼에 둘지 <code>HTP0-REPACK</code> 버퍼로 보낼지 정하는 것은 모두 <code>create_tensor</code>가 아니라 <code>load_tensors</code> 계열 단계에서 일어납니다. 앞 절(10장)에서 본 HTP0-REPACK, 즉 tile-major 재배치도 이 <code>create_tensor</code> 단계가 아니라 load/placement 단계의 몫입니다. 따라서 "create_tensor가 repack을 한다"거나 "create_tensor에서 Q4 bytes가 만들어진다"고 설명하면 안 됩니다. 이 함수는 어디까지나 아키텍처가 요구하는 텐서의 <em>명세</em>를 등록하는 단계입니다.
+      </p>
+      <table>
+        <thead><tr><th>단계</th><th>하는 일</th><th>Q4 bytes 생성?</th><th>HTP repack?</th></tr></thead>
+        <tbody>
+          <tr><td>GGUF conversion / quantization</td><td>FP16을 Q4_0으로 변환해 파일에 bytes를 굽는다</td><td>예 (여기서 생성)</td><td>아니오</td></tr>
+          <tr><td><code>create_tensor</code></td><td>텐서 이름·shape·type·역할을 등록</td><td>아니오</td><td>아니오</td></tr>
+          <tr><td><code>load_tensors</code></td><td>bytes 연결·mmap·buffer placement 결정</td><td>아니오</td><td>여기서 결정</td></tr>
+          <tr><td><code>HTP0-REPACK</code></td><td>이미 있는 Q4 bytes를 tile-major로 재배치 (값 불변)</td><td>아니오</td><td>예</td></tr>
+          <tr><td>graph build</td><td>계산 노드(op)를 만들고 서로 연결</td><td>아니오</td><td>아니오</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="gs-mulmat">11-2. ggml_mul_mat는 계산이 아니라 계산 노드를 만든다</h3>
+      <p>
+        graph build 단계에서 가장 자주 등장하는 함수가 <code>ggml_mul_mat</code>입니다. 개념적으로 <code>q = ggml_mul_mat(ctx, Wq, x)</code>처럼 호출한다고 하면, 그 순간 행렬곱이 실제로 실행되어 결과 숫자가 나올 것 같지만 그렇지 않습니다. 이 호출이 그 자리에서 하는 일은 <strong>새로운 <code>ggml_tensor</code> 노드 하나를 만드는 것</strong>뿐이며, 그 노드는 대략 다음과 같은 필드를 갖습니다(실제 필드 이름·구조는 llama.cpp 버전에 따라 다를 수 있으니 개념적으로 이해하면 됩니다).
+      </p>
+      <ul>
+        <li><strong>name</strong>: <code>q</code> 또는 <code>blk.0.attn_q</code> 같은 이름</li>
+        <li><strong>op</strong>: <code>MUL_MAT</code> — "이 텐서는 행렬곱으로 만들어질 것"이라는 표시</li>
+        <li><strong>src0</strong>: <code>Wq</code> (weight 쪽 입력)</li>
+        <li><strong>src1</strong>: <code>x</code> (activation 쪽 입력)</li>
+        <li><strong>data</strong>: 아직 실제 결과값 없음 (실행되기 전이므로 비어 있음)</li>
+        <li><strong>buffer</strong>: 실행/alloc 단계 전까지는 미정일 수 있음</li>
+      </ul>
+      <p>
+        여기서 초급자가 가장 헷갈리는 지점은, <code>ggml_tensor</code>가 "값을 담는 그릇"이면서 동시에 "그 값을 어떻게 만들지 적어 둔 계산 노드"이기도 하다는 이중성입니다. weight 텐서는 이미 값이 채워져 있는 그릇(계산할 필요 없음)이고, <code>ggml_mul_mat</code>가 만든 텐서는 <em>아직 비어 있지만 어떻게 채울지는 정해진</em> 그릇입니다. 즉 같은 <code>ggml_tensor</code> 타입이라도, 하나는 "이미 있는 데이터"를 가리키고 다른 하나는 "앞으로 계산될 결과"를 가리킵니다.
+      </p>
+      <table>
+        <thead><tr><th>구분</th><th>weight tensor</th><th>operation result tensor</th></tr></thead>
+        <tbody>
+          <tr><td>예시</td><td><code>blk.0.attn_q.weight</code></td><td><code>blk.0.attn_q</code> (Q projection 결과)</td></tr>
+          <tr><td>op</td><td><code>NONE</code>에 가까움</td><td><code>MUL_MAT</code></td></tr>
+          <tr><td>data</td><td>이미 존재 (GGUF에서 옴)</td><td>아직 없음 (실행 후 채워짐)</td></tr>
+          <tr><td>src</td><td>없음</td><td>src0 = weight, src1 = activation</td></tr>
+          <tr><td>값이 정해지는 시점</td><td>모델 로드 시점</td><td>graph_compute(실행) 시점</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="gs-build-attn-ffn">11-3. build_attn과 build_ffn은 작은 노드들을 연결해 forward 부분 그래프를 만든다</h3>
+      <p>
+        <code>build_attn</code>과 <code>build_ffn</code>은 한 번에 attention이나 FFN "전체 계산을 실행하는 함수"가 아니라, 이번 forward에 필요한 작은 계산 노드들을 여러 개 만들어 <code>src[]</code>로 이어 붙이는 <strong>builder/helper</strong>입니다. 즉 앞 절에서 본 <code>ggml_mul_mat</code>가 노드 하나를 만든다면, 이 함수들은 그런 노드 생성 호출을 여러 번 엮어서 하나의 부분 그래프(sub-graph)를 조립합니다.
+      </p>
+      <p>
+        <code>build_attn</code> 내부에서 만들어지는 노드들의 흐름을 개념적으로 따라가 보면 대략 이렇습니다. 먼저 입력 hidden state에 <code>RMS_NORM</code> 노드를 붙여 정규화된 activation을 만들고, 그 결과를 <code>src1</code>로 삼아 Q·K·V 각각에 대한 <code>MUL_MAT</code> 노드(각 노드의 <code>src0</code>는 <code>attn_q/k/v.weight</code>)를 만듭니다. 이어서 Q와 K에 위치 정보를 주입하는 <code>ROPE</code> 노드를 붙이고, 이번 스텝의 K·V를 KV cache에 쓰고 과거 값을 함께 읽는 cache write/read 노드를 연결한 뒤, attention 본체(score 계산과 가중합) 노드를 만들고, 마지막으로 output projection <code>MUL_MAT</code>(<code>src0 = attn_output.weight</code>)와 residual <code>ADD</code>까지 이어 붙입니다. 정리하면 <em>input hidden → RMS_NORM → Q/K/V MUL_MAT → RoPE → KV cache write/read → attention body → output projection MUL_MAT → residual add</em> 순서의 노드들이 차례로 생성·연결됩니다.
+      </p>
+      <p>
+        <code>build_ffn</code>도 같은 방식으로 FFN에 필요한 노드들을 엮습니다. <code>ffn_norm</code>(RMS_NORM) 노드로 시작해서 gate projection <code>MUL_MAT</code>와 up projection <code>MUL_MAT</code> 노드를 만들고, gate 쪽에 <code>SILU</code> 활성화 노드를 붙인 다음 up 결과와 elementwise <code>MUL</code>로 곱하고, 그 결과에 down projection <code>MUL_MAT</code>를 적용한 뒤 residual <code>ADD</code>로 마무리합니다. 즉 <em>ffn_norm → gate projection MUL_MAT → up projection MUL_MAT → activation(SILU) → elementwise multiply → down projection MUL_MAT → residual add</em> 흐름의 노드들이 만들어집니다.
+      </p>
+      <div class="callout">
+        <strong>강조할 점</strong> — <code>build_attn</code>과 <code>build_ffn</code>이 반환될 때까지도 실제 행렬곱·정규화·softmax는 단 한 번도 실행되지 않았습니다. 이 함수들은 "이번 forward에서 이런 계산들이 이런 순서와 의존 관계로 필요하다"는 <strong>설계도(노드들의 연결)</strong>만 만들어 둡니다. 실제 숫자 계산은 나중에 backend의 <code>graph_compute</code>에서 일어납니다.
+      </div>
+
+      <h3 id="gs-forward-expand">11-4. ggml_build_forward_expand는 최종 결과에서 거꾸로 dependency를 따라간다</h3>
+      <p>
+        지금까지 만든 노드들은 흩어져 있는 조각일 뿐, 아직 "실행할 그래프"로 정리되지는 않았습니다. 이 정리를 맡는 것이 <code>ggml_build_forward_expand(gf, logits)</code>입니다. 이 함수는 최종 output 텐서인 <code>logits</code>에서 출발해, 그 노드의 <code>src0</code>, <code>src1</code>, <code>src[]</code>를 따라 거꾸로 거슬러 올라가면서 "이 최종 결과를 만드는 데 실제로 필요한 노드들"을 <code>ggml_cgraph</code>에 등록합니다.
+      </p>
+      <p>
+        여기서 중요한 것은, <strong>노드가 만들어졌다고 해서 자동으로 최종 실행 그래프에 포함되는 것은 아니라는</strong> 점입니다. 중간에 만들었지만 어떤 이유로 최종 <code>logits</code>와 연결되지 않은 노드는 그래프에 포함되지 않습니다. 오직 최종 결과에 dependency로 이어진 노드들만 그래프에 들어갑니다. 그리고 추적은 최종 output에서 입력 방향으로 거꾸로 진행되지만, 정작 그래프 안에 정리된 <em>실행 순서</em>는 그 반대입니다. 즉 dependency(먼저 계산되어야 하는 것)가 앞에 오고, 그것을 소비하는 consumer가 뒤에 오도록, <strong>실제로 실행 가능한 순서(topological order)</strong>로 배열됩니다.
+      </p>
+      <p>
+        이 단계에서도 CPU·HTP·GPU 어느 쪽에서도 실제 계산은 아직 일어나지 않습니다. <code>ggml_build_forward_expand</code>가 하는 일은 어디까지나 "무엇을, 어떤 순서로 계산해야 하는가"를 확정하는 것까지입니다. 실제 실행은 이 그래프를 scheduler가 backend별로 나눈 뒤, backend의 <code>graph_compute</code> 단계에서 비로소 일어납니다.
+      </p>
+      <div class="callout">
+        <strong>짧은 요리 비유</strong> — <code>ggml_mul_mat</code>는 조리법 카드 한 장을 쓰는 일이고, <code>ggml_build_forward_expand</code>는 오늘 실제로 만들 요리에 필요한 카드만 골라 조리 순서표에 끼워 넣는 일이며, backend의 <code>graph_compute</code>는 그 순서표대로 불을 켜고 진짜로 조리하는 일입니다. 카드를 아무리 많이 써 두어도, 순서표에 오르지 못한 카드는 오늘 조리되지 않습니다.
+      </div>
+
+      <h3 id="gs-graph-shape">11-5. 실제 graph는 어떻게 생겼는가: decode 1 step 예시</h3>
+      <p>
+        말로 설명한 노드들을 실제 그래프 모양으로 그려 보면 이해가 훨씬 빨라집니다. 다만 전체 LLM 그래프는 레이어 수만큼 이 구조가 반복되어 너무 크므로, 아래 그림은 <strong>layer 0의 일부만 잘라낸 축약판</strong>입니다. 색은 노드의 성격을 구분합니다 — 정적 weight, 런타임 중간 결과(activation), 실제 계산 op, KV cache 관련 view, 그리고 다음 layer로 넘어가는 최종 출력.
+      </p>
+      <div class="graph-legend">
+        <span><i class="lg-weight"></i>weight tensor (정적 weight)</span>
+        <span><i class="lg-act"></i>activation / 중간 결과</span>
+        <span><i class="lg-op"></i>op node (실제 계산)</span>
+        <span><i class="lg-cache"></i>cache / view node</span>
+        <span><i class="lg-out"></i>다음 layer로 넘어가는 결과</span>
+      </div>
+      <figure>
+        <svg class="graph-svg" viewBox="0 0 760 1410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="decode 1 step graph 축약판">
+          <defs>
+            <marker id="garrow" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#8896a6"></path>
+            </marker>
+            <marker id="garrow-skip" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#b0929a"></path>
+            </marker>
+          </defs>
+
+          <!-- arrows first (drawn under nodes) -->
+          <path class="garrow" d="M380,64 L380,104"></path>
+          <path class="garrow" d="M240,128 L280,128"></path>
+          <path class="garrow" d="M380,152 L380,192"></path>
+          <path class="garrow" d="M380,240 L380,280"></path>
+          <path class="garrow" d="M240,304 L280,304"></path>
+          <!-- RMS_NORM -> Q/K/V matmul -->
+          <path class="garrow" d="M380,328 L380,340 L130,340 L130,444"></path>
+          <path class="garrow" d="M380,328 L380,444"></path>
+          <path class="garrow" d="M380,328 L380,340 L630,340 L630,444"></path>
+          <!-- weights -> matmul -->
+          <path class="garrow" d="M130,416 L130,444"></path>
+          <path class="garrow" d="M380,416 L380,444"></path>
+          <path class="garrow" d="M630,416 L630,444"></path>
+          <!-- matmul -> rope / cache -->
+          <path class="garrow" d="M130,494 L130,536"></path>
+          <path class="garrow" d="M380,494 L380,536"></path>
+          <path class="garrow" d="M630,494 L630,536"></path>
+          <!-- rope/cache -> attention body -->
+          <path class="garrow" d="M255,584 L255,604 L300,604 L300,624"></path>
+          <path class="garrow" d="M630,584 L630,604 L440,604 L440,624"></path>
+          <!-- attention body -> output proj -->
+          <path class="garrow" d="M340,674 L340,700 L390,700 L390,716"></path>
+          <path class="garrow" d="M240,740 L280,740"></path>
+          <!-- output proj -> residual add -->
+          <path class="garrow" d="M390,766 L390,808"></path>
+          <!-- residual skip: inp_embd -> attn residual -->
+          <path class="garrow-skip" d="M480,216 C650,240 650,800 502,824"></path>
+          <!-- residual add -> ffn_norm -->
+          <path class="garrow" d="M390,856 L390,896"></path>
+          <!-- ffn_norm -> gate/up matmul -->
+          <path class="garrow" d="M390,944 L390,1035 L170,1035 L170,1056"></path>
+          <path class="garrow" d="M390,944 L390,1035 L530,1035 L530,1056"></path>
+          <!-- gate/up weight -> matmul -->
+          <path class="garrow" d="M170,1028 L170,1056"></path>
+          <path class="garrow" d="M530,1028 L530,1056"></path>
+          <!-- gate/up matmul -> silu/mul -->
+          <path class="garrow" d="M170,1106 L170,1130 L300,1130 L300,1148"></path>
+          <path class="garrow" d="M530,1106 L530,1130 L440,1130 L440,1148"></path>
+          <!-- silu/mul -> ffn_down -->
+          <path class="garrow" d="M370,1198 L370,1220 L390,1220 L390,1240"></path>
+          <path class="garrow" d="M240,1264 L280,1264"></path>
+          <!-- ffn_down -> final residual -->
+          <path class="garrow" d="M390,1290 L390,1332"></path>
+          <!-- residual skip: attn residual -> final residual -->
+          <path class="garrow-skip" d="M502,832 C700,900 700,1300 522,1352"></path>
+
+          <!-- nodes -->
+          <g class="gnode gn-act"><rect x="280" y="16" width="200" height="48" rx="8"></rect>
+            <text class="gname" x="380" y="38" text-anchor="middle">inp_tokens</text>
+            <text class="gop" x="380" y="53" text-anchor="middle">op=NONE · type=I32</text></g>
+
+          <g class="gnode gn-weight"><rect x="30" y="104" width="210" height="48" rx="8"></rect>
+            <text class="gname" x="135" y="126" text-anchor="middle">token_embd.weight</text>
+            <text class="gop" x="135" y="141" text-anchor="middle">정적 weight · op=NONE</text></g>
+          <g class="gnode gn-op"><rect x="280" y="104" width="200" height="48" rx="8"></rect>
+            <text class="gname" x="380" y="126" text-anchor="middle">GET_ROWS</text>
+            <text class="gop" x="380" y="141" text-anchor="middle">embedding lookup</text></g>
+
+          <g class="gnode gn-act"><rect x="280" y="192" width="200" height="48" rx="8"></rect>
+            <text class="gname" x="380" y="214" text-anchor="middle">inp_embd</text>
+            <text class="gop" x="380" y="229" text-anchor="middle">중간 결과 (activation)</text></g>
+
+          <g class="gnode gn-weight"><rect x="30" y="280" width="210" height="48" rx="8"></rect>
+            <text class="gname" x="135" y="302" text-anchor="middle">blk.0.attn_norm.weight</text>
+            <text class="gop" x="135" y="317" text-anchor="middle">정적 weight</text></g>
+          <g class="gnode gn-op"><rect x="280" y="280" width="200" height="48" rx="8"></rect>
+            <text class="gname" x="380" y="302" text-anchor="middle">RMS_NORM</text>
+            <text class="gop" x="380" y="317" text-anchor="middle">attn_norm → normed activation</text></g>
+
+          <g class="gnode gn-weight"><rect x="40" y="372" width="180" height="44" rx="8"></rect>
+            <text class="gname" x="130" y="392" text-anchor="middle">attn_q.weight</text>
+            <text class="gop" x="130" y="407" text-anchor="middle">blk.0</text></g>
+          <g class="gnode gn-weight"><rect x="290" y="372" width="180" height="44" rx="8"></rect>
+            <text class="gname" x="380" y="392" text-anchor="middle">attn_k.weight</text>
+            <text class="gop" x="380" y="407" text-anchor="middle">blk.0</text></g>
+          <g class="gnode gn-weight"><rect x="540" y="372" width="180" height="44" rx="8"></rect>
+            <text class="gname" x="630" y="392" text-anchor="middle">attn_v.weight</text>
+            <text class="gop" x="630" y="407" text-anchor="middle">blk.0</text></g>
+
+          <g class="gnode gn-op"><rect x="40" y="444" width="180" height="50" rx="8"></rect>
+            <text class="gname" x="130" y="466" text-anchor="middle">MUL_MAT (Q)</text>
+            <text class="gop" x="130" y="482" text-anchor="middle">Wq × normed</text></g>
+          <g class="gnode gn-op"><rect x="290" y="444" width="180" height="50" rx="8"></rect>
+            <text class="gname" x="380" y="466" text-anchor="middle">MUL_MAT (K)</text>
+            <text class="gop" x="380" y="482" text-anchor="middle">Wk × normed</text></g>
+          <g class="gnode gn-op"><rect x="540" y="444" width="180" height="50" rx="8"></rect>
+            <text class="gname" x="630" y="466" text-anchor="middle">MUL_MAT (V)</text>
+            <text class="gop" x="630" y="482" text-anchor="middle">Wv × normed</text></g>
+
+          <g class="gnode gn-op"><rect x="40" y="536" width="430" height="48" rx="8"></rect>
+            <text class="gname" x="255" y="558" text-anchor="middle">ROPE (Q, K)</text>
+            <text class="gop" x="255" y="573" text-anchor="middle">위치 정보 회전 주입</text></g>
+          <g class="gnode gn-cache"><rect x="540" y="536" width="180" height="48" rx="8"></rect>
+            <text class="gname" x="630" y="558" text-anchor="middle">KV cache write/read</text>
+            <text class="gop" x="630" y="573" text-anchor="middle">view / cache node</text></g>
+
+          <g class="gnode gn-op"><rect x="180" y="624" width="320" height="50" rx="8"></rect>
+            <text class="gname" x="340" y="646" text-anchor="middle">attention body</text>
+            <text class="gop" x="340" y="662" text-anchor="middle">softmax(QKᵀ)·V</text></g>
+
+          <g class="gnode gn-weight"><rect x="30" y="716" width="210" height="48" rx="8"></rect>
+            <text class="gname" x="135" y="738" text-anchor="middle">blk.0.attn_output.weight</text>
+            <text class="gop" x="135" y="753" text-anchor="middle">정적 weight</text></g>
+          <g class="gnode gn-op"><rect x="280" y="716" width="220" height="50" rx="8"></rect>
+            <text class="gname" x="390" y="738" text-anchor="middle">output projection</text>
+            <text class="gop" x="390" y="754" text-anchor="middle">op=MUL_MAT</text></g>
+
+          <g class="gnode gn-op"><rect x="280" y="808" width="220" height="48" rx="8"></rect>
+            <text class="gname" x="390" y="830" text-anchor="middle">residual ADD</text>
+            <text class="gop" x="390" y="845" text-anchor="middle">attn 결과 + inp_embd</text></g>
+
+          <g class="gnode gn-op"><rect x="280" y="896" width="220" height="48" rx="8"></rect>
+            <text class="gname" x="390" y="918" text-anchor="middle">ffn_norm</text>
+            <text class="gop" x="390" y="933" text-anchor="middle">op=RMS_NORM</text></g>
+
+          <g class="gnode gn-weight"><rect x="70" y="984" width="200" height="44" rx="8"></rect>
+            <text class="gname" x="170" y="1004" text-anchor="middle">ffn_gate.weight</text>
+            <text class="gop" x="170" y="1019" text-anchor="middle">blk.0</text></g>
+          <g class="gnode gn-weight"><rect x="430" y="984" width="200" height="44" rx="8"></rect>
+            <text class="gname" x="530" y="1004" text-anchor="middle">ffn_up.weight</text>
+            <text class="gop" x="530" y="1019" text-anchor="middle">blk.0</text></g>
+
+          <g class="gnode gn-op"><rect x="70" y="1056" width="200" height="50" rx="8"></rect>
+            <text class="gname" x="170" y="1078" text-anchor="middle">ffn_gate MUL_MAT</text>
+            <text class="gop" x="170" y="1094" text-anchor="middle">gate projection</text></g>
+          <g class="gnode gn-op"><rect x="430" y="1056" width="200" height="50" rx="8"></rect>
+            <text class="gname" x="530" y="1078" text-anchor="middle">ffn_up MUL_MAT</text>
+            <text class="gop" x="530" y="1094" text-anchor="middle">up projection</text></g>
+
+          <g class="gnode gn-op"><rect x="180" y="1148" width="380" height="50" rx="8"></rect>
+            <text class="gname" x="370" y="1170" text-anchor="middle">SILU · MUL</text>
+            <text class="gop" x="370" y="1186" text-anchor="middle">SILU(gate) × up (elementwise)</text></g>
+
+          <g class="gnode gn-weight"><rect x="30" y="1240" width="210" height="48" rx="8"></rect>
+            <text class="gname" x="135" y="1262" text-anchor="middle">blk.0.ffn_down.weight</text>
+            <text class="gop" x="135" y="1277" text-anchor="middle">정적 weight</text></g>
+          <g class="gnode gn-op"><rect x="280" y="1240" width="220" height="50" rx="8"></rect>
+            <text class="gname" x="390" y="1262" text-anchor="middle">ffn_down MUL_MAT</text>
+            <text class="gop" x="390" y="1278" text-anchor="middle">down projection</text></g>
+
+          <g class="gnode gn-out"><rect x="270" y="1332" width="250" height="58" rx="8"></rect>
+            <text class="gname" x="395" y="1356" text-anchor="middle">residual ADD</text>
+            <text class="gop" x="395" y="1372" text-anchor="middle">→ 다음 layer 입력</text></g>
+        </svg>
+        <figcaption>그림 6. Decode 1 step 그래프의 <strong>축약판</strong> (layer 0 일부). 실선 화살표는 <code>src0/src1</code> dependency, 점선 화살표는 residual skip 연결입니다. 실제 그래프는 이 구조가 레이어 수만큼 반복되고, 마지막에 final norm과 output(lm_head) matmul이 붙습니다.</figcaption>
+      </figure>
+
+      <h3 id="gs-graph-dump">11-6. graph dump를 찍으면 어떤 로그가 나와야 하는가</h3>
+      <p>
+        위 그림 같은 구조는 그래프를 텍스트로 dump해 보면 로그로도 그대로 드러납니다. 사용자가 build된 그래프의 노드들을 순회하며 이름·op·src를 찍는 instrumentation을 넣었다면, 대략 아래와 비슷한 로그를 기대할 수 있습니다. 단, 이 로그는 <strong>개념 예시</strong>이며 실제 노드 이름·인덱스·순서는 llama.cpp 버전과 모델 아키텍처에 따라 다를 수 있습니다.
+      </p>
+      <pre><code>[GRAPH] #000 name=inp_tokens        op=NONE     type=I32  shape=[n_tokens]
+[GRAPH] #001 name=inp_embd          op=GET_ROWS src0=token_embd.weight src1=inp_tokens
+[GRAPH] #007 name=blk.0.attn_norm   op=RMS_NORM src0=inp_embd
+[GRAPH] #010 name=blk.0.attn_q      op=MUL_MAT  src0=blk.0.attn_q.weight src1=blk.0.attn_norm
+[GRAPH] #011 name=blk.0.attn_k      op=MUL_MAT  src0=blk.0.attn_k.weight src1=blk.0.attn_norm
+[GRAPH] #012 name=blk.0.attn_v      op=MUL_MAT  src0=blk.0.attn_v.weight src1=blk.0.attn_norm
+[GRAPH] #020 name=blk.0.ffn_gate    op=MUL_MAT  src0=blk.0.ffn_gate.weight src1=blk.0.ffn_norm</code></pre>
+      <p>
+        이 로그에서 사용자가 실제로 확인해야 할 것은 다음과 같습니다. 첫째, 기대한 <strong>op가 정말 그래프에 존재하는가</strong> — <code>GET_ROWS</code>, <code>MUL_MAT</code>, <code>RMS_NORM</code>, <code>ROPE</code> 같은 노드가 빠짐없이 찍히는지 봅니다. 둘째, <strong>src0/src1 dependency가 맞는가</strong> — 예컨대 <code>blk.0.attn_q</code>의 <code>src0</code>가 <code>blk.0.attn_q.weight</code>이고 <code>src1</code>이 정규화된 activation(<code>blk.0.attn_norm</code>)인지 확인합니다. 셋째, <strong>weight tensor와 activation tensor가 구분되는가</strong> — <code>src0</code> 자리에는 정적 weight가, <code>src1</code> 자리에는 런타임 activation이 오는 패턴이 보여야 합니다. 넷째, 그리고 가장 중요한 것은, 여기서 <code>MUL_MAT</code>가 찍혔다는 사실이 곧 <strong>그 계산이 이미 실행됐다는 뜻이 아니라, 실행 예정 노드가 그래프에 등록됐다는 뜻</strong>일 뿐이라는 점입니다. 실제 실행 여부는 다음 절의 schedule 로그와 backend 로그로 따로 확인해야 합니다.
+      </p>
+
+      <h3 id="gs-sched-split">11-7. scheduler 이후에는 graph가 backend split으로 나뉜다</h3>
+      <p>
+        graph dump와 schedule dump는 서로 다른 질문에 답합니다. <strong>graph build 결과</strong>는 "어떤 op와 dependency가 있는가"를 보여 주고, <strong>scheduler 결과</strong>는 "각 노드가 CPU·HTP·GPU 중 어디서 실행될 것인가"를 보여 줍니다. 앞 절의 graph dump에 <code>MUL_MAT</code>가 있다는 것과, 그 <code>MUL_MAT</code>가 실제로 HTP에 배정됐다는 것은 별개의 사실입니다.
+      </p>
+      <p>
+        여기서 다시 강조할 것은, <code>supports_op=true</code>는 어디까지나 "이 backend가 이 연산 종류를 처리할 수 있다"는 <strong>후보 가능성</strong>이지 HTP 실행이 확정됐다는 뜻이 아니라는 점입니다. 실제 배치가 성립하려면 그 연산에 연결된 buffer 타입이 backend와 호환되어야 하고(<code>supports_buft</code>), buffer placement가 맞아떨어져야 합니다. 그래서 <code>token_embd.weight</code>가 <code>CPU_Mapped</code>에 있으면 그것을 <code>src0</code>로 쓰는 <code>GET_ROWS</code>는 CPU split에 남을 수 있고, 반대로 <code>blk.0.attn_q.weight</code>가 <code>HTP0-REPACK</code> 버퍼에 있고 <code>MUL_MAT</code> 조건이 맞으면 그 노드는 HTP split으로 갈 수 있습니다.
+      </p>
+      <pre><code>[SCHED] #001 op=GET_ROWS backend=CPU  reason=src0 buffer CPU_Mapped
+[SCHED] #010 op=MUL_MAT  backend=HTP  src0_buffer=HTP0-REPACK path=candidate
+[SCHED] #020 op=MUL_MAT  backend=HTP  src0_buffer=HTP0-REPACK path=candidate
+[SCHED] splits: CPU[0..3], HTP[4..38], CPU[39..42]</code></pre>
+      <p>
+        이 예시를 해석하면 이렇습니다. 그래프 앞머리의 <code>GET_ROWS</code>는 <code>token_embd.weight</code>가 CPU_Mapped에 있어서 CPU에 남았지만, transformer block 내부의 <code>MUL_MAT</code>들은 weight가 HTP0-REPACK에 있어 HTP 후보로 잡혔습니다. 마지막 <code>splits</code> 줄은 그래프가 크게 <em>CPU 앞부분 → HTP 본체 → CPU 뒷부분</em>의 세 조각으로 나뉘었음을 보여 줍니다. 여기서 주의할 점은, transformer block matmul이 HTP로 가더라도 CPU split과 HTP split의 경계마다 <strong>CPU↔HTP 데이터 복사(copy)</strong>가 생길 수 있고, 이 복사와 동기화 비용이 쌓이면 "matmul은 HTP에서 돌았는데도 전체 성능은 기대만큼 안 나오는" 상황이 만들어질 수 있다는 것입니다. 그래서 split이 몇 조각으로 나뉘는지, 경계가 어디에 생기는지도 함께 봐야 합니다.
+      </p>
+
+      <h3 id="gs-graph-artifacts">11-8. graph.dot과 graph_nodes.txt로 확인하는 방법</h3>
+      <p>
+        위에서 본 로그들은 실제 개발 과정에서 몇 개의 산출물 파일로 남겨 두면 다루기 편합니다. PoC를 진행할 때 <code>experiments/graph_dump/</code> 아래에 다음과 같은 파일들을 만들어 두는 방식을 권합니다(경로와 파일명은 팀 컨벤션에 맞게 바꿔도 됩니다).
+      </p>
+      <ul>
+        <li><code>experiments/graph_dump/graph_nodes.txt</code> — graph build 결과. 어떤 node/op가 있고 각 노드의 <code>src</code> dependency가 무엇인지 확인하는 용도(11-6의 로그가 그대로 파일로 남는 형태).</li>
+        <li><code>experiments/graph_dump/graph_schedule.txt</code> — scheduler 이후의 backend 배치 결과. 각 노드가 CPU인지 HTP인지, split 경계가 어디인지 확인하는 용도(11-7의 로그).</li>
+        <li><code>experiments/graph_dump/graph.dot</code> — Graphviz로 시각화할 수 있는 dependency graph. 노드와 화살표를 그림으로 볼 수 있어 의존 관계 검토에 좋습니다.</li>
+        <li><code>experiments/graph_dump/graph.svg</code> — (선택) 위 <code>graph.dot</code>을 변환한 시각화 결과 이미지.</li>
+      </ul>
+      <p>
+        <code>graph.dot</code>을 이미지로 바꾸려면 Graphviz의 <code>dot</code> 명령 한 줄이면 됩니다.
+      </p>
+      <pre><code>dot -Tsvg experiments/graph_dump/graph.dot -o experiments/graph_dump/graph.svg</code></pre>
+      <div class="callout">
+        <strong>참고</strong> — 위 산출물 경로·파일명·그리고 이 dump를 켜는 방법(예: <code>DUMP_GGML_GRAPH=1</code> 같은 환경 변수나 코드 내 flag)은 이 문서에서 제안하는 개념적 컨벤션이며, <strong>현재 repo에서 확인되지 않음</strong>입니다. 실제 dump를 켜고 파일로 남기는 정확한 방법은 PoC 대상 llama.cpp / ggml-hexagon 소스에서 직접 확인해야 합니다.
+      </div>
+
+      <h3 id="gs-poc-check">11-9. 이 섹션의 PoC 체크포인트</h3>
+      <p>이 장에서 다룬 내용을 판단 기준의 형태로 짧게 정리하면 다음과 같습니다.</p>
+      <ul>
+        <li><code>create_tensor</code> 단계에서 Q4 bytes 생성이나 HTP repack이 일어난다고 보면 안 됩니다 — 그것은 각각 quantization과 load/placement 단계의 몫입니다.</li>
+        <li><code>ggml_mul_mat</code> 호출은 행렬곱 실행이 아니라 <code>MUL_MAT</code> node를 만드는 일입니다.</li>
+        <li><code>ggml_build_forward_expand</code>는 최종 output(<code>logits</code>)에서 dependency를 거꾸로 따라가 실제로 필요한 node만 그래프에 포함합니다.</li>
+        <li><strong>graph dump</strong>로 "어떤 op가 생겼는지"를 확인합니다.</li>
+        <li><strong>schedule dump</strong>로 "그 op가 어느 backend에 배치됐는지"를 확인합니다.</li>
+        <li>HTP backend 로그/PMU로 "실제로 HMX/HVX kernel path까지 갔는지"를 확인합니다 — 여기까지 확인해야 비로소 "HTP에서 돌았다"고 말할 수 있습니다.</li>
+      </ul>
     </section>
 
     <section id="htp-compute">
@@ -933,8 +1459,113 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
       </p>
     </section>
 
+    <section id="decode-anim">
+      <h2><span class="num">14.</span>Decode 1 Step: 토큰 하나가 실제로 어떻게 흘러가는가</h2>
+      <p>
+        앞의 13장이 decode 한 스텝을 정적인 그림으로 훑었다면, 이 장은 같은 흐름을 <strong>애니메이션으로 한 단계씩</strong> 따라가면서, 각 단계에서 어떤 데이터가 어디서 어디로 이동하는지를 눈으로 확인해 보는 자리입니다. 다루는 흐름은 익숙합니다 — 입력 token id에서 시작해 <code>GET_ROWS</code>로 embedding을 꺼내고, RMSNorm을 거쳐 Q/K/V matmul, RoPE, KV cache write/read, attention, output projection, FFN을 지나 layer output이 다음 step의 입력으로 이어지는 과정입니다. 다만 이번에는 이 흐름 위에 GGUF Q4_0 weight, runtime activation, KV cache, HTP0-REPACK, 그리고 CPU↔HTP 복사 위험이 어디서 개입하는지를 겹쳐서 보여줍니다.
+      </p>
+      <p>
+        핵심적으로 기억할 대비는 하나입니다. <code>token_embd.weight</code>나 <code>Wq/Wk/Wv/Wo/Wgate/Wup/Wdown</code>처럼 <strong>사전 양자화되어 GGUF에 저장된 weight는 매 step 변하지 않는 고정값</strong>이고, <code>normed_hidden</code>처럼 흘러 다니는 activation은 <strong>이번 step에만 존재하는, 매번 새로 계산되는 값</strong>입니다(activation function이 아니라 "입력 벡터"라는 의미의 activation입니다). matmul이 HTP에서 실제로 이득을 보려면 "op가 지원된다"는 것만으로는 부족하고, weight가 <code>HTP0-REPACK</code>에 놓이고 src/dst buffer가 HTP와 맞아떨어져 HMX/HVX path를 타는 조건까지 함께 성립해야 합니다.
+      </p>
+
+      <h3 id="da-overview">전체 흐름 개요도</h3>
+      <p>먼저 한 줄로 이어지는 전체 흐름입니다. 색은 노드의 성격을 구분합니다 — 초록은 activation/중간 결과, 보라는 op node, 주황은 cache, 파랑은 다음 step으로 넘어가는 결과이며, 파란 badge는 그 단계에서 쓰이는 고정 weight를 뜻합니다.</p>
+      <figure>
+        <div style="overflow-x:auto;">
+          <div class="da-flow">
+            <div class="fnode cat-act"><div class="ft">token id</div><div class="fb">inp_tokens</div></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">GET_ROWS</div><div class="fb">embedding lookup</div><span class="fbadge fb-w">token_embd.weight</span></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">RMSNorm</div><div class="fb">→ normed_hidden</div></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">Q/K/V matmul</div><div class="fb">MUL_MAT</div><span class="fbadge fb-w">Wq/Wk/Wv (Q4_0)</span></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">RoPE</div><div class="fb">Q,K 회전</div></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-cache"><div class="ft">KV cache</div><div class="fb">write / read</div></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">Attention</div><div class="fb">softmax(QKᵀ)·V</div></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">Output proj</div><div class="fb">MUL_MAT</div><span class="fbadge fb-w">Wo (Q4_0)</span></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-op"><div class="ft">FFN</div><div class="fb">gate/up/down</div><span class="fbadge fb-w">Wg/Wu/Wd (Q4_0)</span></div>
+            <div class="farrow">→</div>
+            <div class="fnode cat-out"><div class="ft">layer output</div><div class="fb">→ 다음 step</div></div>
+          </div>
+        </div>
+        <figcaption>그림 5-1. Decode 1 step의 전체 흐름 개요(축약판). 실제 그래프에서는 각 박스가 여러 개의 ggml node로 더 세분화됩니다.</figcaption>
+      </figure>
+
+      <h3 id="da-player">토큰 1개 decode step 애니메이션</h3>
+      <p>
+        아래 위젯은 위 흐름을 한 단계씩 재생합니다. <strong>재생/일시정지</strong>로 자동 진행하거나 <strong>이전/다음</strong>과 슬라이더로 원하는 단계로 이동할 수 있고, 오른쪽 패널에서 그 단계의 설명·toy 값·weight·backend 정보를 함께 볼 수 있습니다. 위쪽 <strong>모드</strong> 선택으로 "정상 HTP 경로(모드 A)"와 "CPU↔HTP 왕복이 생기는 비효율 경로(모드 B)"를 비교해 보세요. 아래 수치는 모두 <strong>개념 설명용 toy example</strong>이며(실제는 <code>d_embedding=1024</code>이지만 이해를 위해 4차원 toy vector로 축소), 실제 backend 배치는 반드시 로그와 profile로 확인해야 합니다.
+      </p>
+      <div class="decode-anim" id="decodeAnim">
+        <div class="da-controls">
+          <button data-act="play" id="daPlay">▶ 재생</button>
+          <button class="ghost" data-act="prev">◀ 이전</button>
+          <button class="ghost" data-act="next">다음 ▶</button>
+          <span class="da-step">Step <b id="daIdx">1</b> / <b id="daTot">10</b></span>
+          <input type="range" id="daSlider" min="0" max="9" value="0" aria-label="decode step">
+          <div class="da-set">
+            <label><input type="radio" name="daMode" value="A" checked> 모드 A: 정상 HTP 경로</label>
+            <label><input type="radio" name="daMode" value="B"> 모드 B: CPU↔HTP 왕복</label>
+            <span style="flex:0 0 12px;"></span>
+            <label><input type="checkbox" id="tgNames"> graph 이름 표시</label>
+            <label><input type="checkbox" id="tgBackend" checked> backend 정보</label>
+            <label><input type="checkbox" id="tgToy" checked> toy 값</label>
+          </div>
+        </div>
+        <div class="da-main">
+          <div class="da-diagram" id="daDiagram">
+            <p style="color:var(--fg-muted); font-size:13px;">이 애니메이션은 JavaScript로 동작합니다. 스크립트가 로드되면 단계별 노드가 여기에 표시됩니다.</p>
+          </div>
+          <aside class="da-side">
+            <div class="da-panel"><h4>단계 설명</h4><div id="daDesc" class="row">—</div></div>
+            <div class="da-panel" id="daToyPanel"><h4>toy 데이터 (개념 예시)</h4><div id="daToy" class="da-toy-vec">—</div></div>
+            <div class="da-panel" id="daWeightPanel"><h4>weight vs activation</h4><div id="daWeight">—</div></div>
+            <div class="da-panel" id="daBackendPanel"><h4>backend / buffer overlay (예시 시나리오)</h4><div id="daBackend">—</div></div>
+          </aside>
+        </div>
+        <p class="da-hint">현재 활성 노드는 테두리 glow로 강조되고, 초록색 data packet은 그 단계에서 흐르는 activation을 나타냅니다. KV cache는 시간축 셀 배열로 표현하며, 이번 step에 기록되는 칸(t=127)은 진한 주황으로 표시됩니다.</p>
+      </div>
+
+      <h3 id="da-getrows">왜 GET_ROWS 하나가 중요할까?</h3>
+      <p>
+        위젯의 두 모드가 보여주려는 핵심이 바로 이것입니다. 그래프의 맨 앞에 있는 <code>GET_ROWS</code> 하나가 어디에 놓이느냐가, 그 뒤로 이어지는 activation 흐름 전체의 복사 비용을 좌우할 수 있습니다.
+      </p>
+      <div class="two-col">
+        <div class="mix-card">
+          <h4>Case A — 입력 흐름이 HTP 친화적으로 이어짐</h4>
+          <p class="sub" style="margin-bottom:6px;">GET_ROWS 이후 activation이 한 번의 정돈된 handoff로 HTP 쪽에 자리 잡고, Q/K/V·Wo·FFN matmul이 그대로 HTP0-REPACK + HMX/HVX path로 이어집니다. 불필요한 왕복이 적습니다.</p>
+        </div>
+        <div class="mix-card">
+          <h4>Case B — GET_ROWS가 CPU에 남음</h4>
+          <p class="sub" style="margin-bottom:6px;"><code>token_embd.weight</code>가 <code>CPU_Mapped</code>라 GET_ROWS가 CPU에서 실행되면, 뒤의 HTP matmul을 위해 activation을 매번 HTP로 복사해야 합니다. split이 자주 끊기면 이 copy·동기화 비용이 누적되어, matmul 자체는 HTP에서 돌아도 전체 성능은 손해를 볼 수 있습니다.</p>
+        </div>
+      </div>
+      <p>
+        요약하면, "이 matmul이 HTP op를 지원하는가"만 확인해서는 부족합니다. 그래프 <strong>앞단의 CPU 잔류가 뒤 전체 흐름에 영향</strong>을 주기 때문에, 입력 단계의 buffer placement까지 함께 봐야 합니다. 아래 표는 각 단계의 대표 op·입출력·weight·backend 예시를 정리한 것입니다(backend는 <strong>예시 시나리오</strong>이며 실제 배치는 확인 필요).
+      </p>
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>단계</th><th>주요 op</th><th>주요 입력</th><th>주요 출력</th><th>weight 종류</th><th>backend 예시</th></tr></thead>
+        <tbody>
+          <tr><td>Embedding lookup</td><td>GET_ROWS</td><td>token id</td><td>embedding</td><td><code>token_embd.weight</code></td><td>CPU 예시</td></tr>
+          <tr><td>QKV projection</td><td>MUL_MAT</td><td>normed_hidden</td><td>q, k, v</td><td>Wq, Wk, Wv (Q4_0)</td><td>HTP 예시</td></tr>
+          <tr><td>Attention output</td><td>MUL_MAT</td><td>attn_out</td><td>projected hidden</td><td>Wo (Q4_0)</td><td>HTP 예시</td></tr>
+          <tr><td>FFN</td><td>MUL_MAT + SILU + MUL</td><td>hidden</td><td>ffn_out</td><td>Wgate, Wup, Wdown (Q4_0)</td><td>HTP 예시</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout">
+        <strong>애니메이션과 실제 graph의 차이</strong> — 이 애니메이션은 이해를 위한 <strong>축약판</strong>입니다. 실제 graph dump에서는 한 박스가 <code>GET_ROWS</code>, <code>RMS_NORM</code>, <code>MUL_MAT</code>, <code>ROPE</code>, <code>ADD</code>, <code>MUL</code>, <code>SILU</code> 등 더 잘게 쪼개진 node들로 나타나고, shape도 toy vector가 아니라 훨씬 큰 실제 차원(예: 1024)을 가집니다. 각 node가 실제로 어느 backend·어느 kernel path로 갔는지는 여기 표시된 "예시 시나리오"가 아니라, graph_schedule 로그와 HTP kernel path 로그로 직접 확인해야 합니다.
+      </div>
+    </section>
+
     <section id="debug-checklist">
-      <h2><span class="num">14.</span>실무 디버깅 체크포인트</h2>
+      <h2><span class="num">15.</span>실무 디버깅 체크포인트</h2>
       <p>PoC를 진행하면서 "정말 Q4_0 weight가 HTP tiled matmul 경로로 실행되고 있는가"를 확인하려면, 최소한 아래 항목들을 로그나 실행 조건에서 직접 확인하는 과정이 필요합니다.</p>
       <pre><code>[확인 체크리스트]
 1. token_embd.weight 의 타입 확인            → F16 / F32 / Q4_0 중 무엇인가
@@ -947,14 +1578,36 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
 8. OPTRACE 상 CPU/HTP 노드 split 비율         → 그래프 전체에서 HTP 비중
 9. graph_compute 단계의 fusion/remap 적용 여부 → 연산이 실제로 결합/변환됐는가
 10. HMX / HVX tiled / HVX flat 중 어느 경로인지 → 실행 path 식별
-11. VTCM 부족으로 인한 fallback 발생 여부      → 용량 초과 시 flat/CPU로 밀림</code></pre>
+11. VTCM 부족으로 인한 fallback 발생 여부      → 용량 초과 시 flat/CPU로 밀림
+
+[graph 관련 추가 확인]
+12. DUMP_GGML_GRAPH=1 로 graph_nodes.txt 생성 여부   → graph dump가 실제로 찍혔는가
+13. GET_ROWS / MUL_MAT / ROPE / RMS_NORM node 존재 여부 → 기대한 op가 그래프에 있는가
+14. 각 MUL_MAT 의 src0 가 어느 weight tensor 인지   → attn_q/k/v, ffn_* 연결 확인
+15. graph_schedule.txt 에서 node별 backend 확인      → 각 노드가 CPU인가 HTP인가
+16. graph.dot / graph.svg 로 dependency 시각화 확인   → 의존 관계가 기대와 맞는가
+17. graph엔 있지만 schedule에서 CPU로 간 node와 그 이유 → split 경계·copy 비용 원인 파악</code></pre>
+      <p style="font-size:14px; color:var(--fg-muted);">
+        12~17번 항목은 <a href="#gs-graph-dump">11-6</a>·<a href="#gs-sched-split">11-7</a>·<a href="#gs-graph-artifacts">11-8</a>에서 자세히 다룬 graph/schedule dump 확인 절차와 연결됩니다. <code>DUMP_GGML_GRAPH=1</code> 같은 dump 활성화 방법과 산출물 경로는 <span class="tag tag-impl">구현마다 다름</span>이며 현재 repo에서 확인되지 않으므로, 실제 방법은 PoC 대상 소스에서 확인해야 합니다.
+      </p>
+      <p>모델을 바꿔가며 benchmark할 때(<a href="#bench-verify">18장</a>·<a href="#prefill-decode">19장</a>)는 아래 항목을 추가로 확인합니다.</p>
+      <pre><code>[benchmark / model 비교 관련 추가 확인]
+18. tied embedding 여부 (HF config tie_word_embeddings)  → 입력/출력 weight 공유 여부
+19. output weight tensor 존재 여부 (output.weight/lm_head) → 별도 tensor인가 재사용인가
+20. 마지막 logits projection 의 src0 weight tensor 확인   → 어떤 weight로 vocab을 만드는가
+21. tensor type별 count (Q4_0/Q4_K/Q6_K/Q8_0/F16 …)      → GGUF mixed quant 여부
+22. important tensor별 type (attn_q/ffn_up/output …)      → 어떤 tensor가 어떤 정밀도인가
+23. prefill graph 와 decode graph 를 분리해서 dump        → 두 실행 경로는 서로 다르다
+24. prefill / decode 각각의 HTP split 비율                → 단계별 fallback이 다를 수 있음
+25. first token latency 와 decode tok/s 를 분리 기록      → 하나의 숫자로 뭉치지 말 것
+26. ARN 의미 확인 (TODO)                                  → 메모상 미확정, 작성자 확인 필요</code></pre>
       <div class="callout warn">
         <strong>가장 흔한 착각</strong> — "이 모델은 Q4_0으로 양자화되어 있다"는 사실과 "이 matmul이 실제로 Q4_0 HTP tiled path에서 실행되고 있다"는 사실은 <strong>전혀 다른 주장</strong>입니다. 전자는 GGUF 파일의 정적인 속성이고, 후자는 런타임에 buffer placement와 scheduler 판단과 커널 선택이 모두 맞아떨어져야 성립하는 동적인 사실입니다. PoC의 성공 여부를 판단할 때는 반드시 후자를 로그로 직접 확인해야 합니다.
       </div>
     </section>
 
     <section id="conclusion">
-      <h2><span class="num">15.</span>마무리</h2>
+      <h2><span class="num">16.</span>마무리</h2>
       <p>
         Semantic Agent PoC처럼 온디바이스 NPU에서 LLM을 실제로 구동하는 프로젝트에서는, "모델이 일단 로드되고 출력이 나온다"는 것만으로는 충분하지 않습니다. 출력이 나오더라도 대부분의 연산이 CPU fallback으로 처리되고 있다면, 그것은 기술적으로는 "동작"하는 것이지만 이 PoC가 증명하고자 하는 "NPU 가속"이라는 목표는 달성하지 못한 것입니다. 그래서 데모의 성공 여부를 판단하는 진짜 기준은 <strong>"모델이 실행되었는가"가 아니라 "어떤 연산이 실제로 HTP에서 돌았는가"</strong>여야 합니다.
       </p>
@@ -971,7 +1624,7 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
     </section>
 
     <section id="code-keywords">
-      <h2><span class="num">16.</span>관련 코드 탐색 키워드</h2>
+      <h2><span class="num">17.</span>관련 코드 탐색 키워드</h2>
       <p>
         이 문서 작성 시점에 현재 저장소(<code>transformer_seminar</code>)에서 아래 키워드들을 검색했으나, 이 저장소는 transformer 개념 학습/세미나용 자료 모음이며 <strong>llama.cpp나 ggml-hexagon backend 소스 코드를 포함하고 있지 않습니다.</strong> 따라서 아래 항목은 모두 "현재 repo에서 확인되지 않음" 상태이며, 실제 코드 확인이 필요할 경우 llama.cpp 및 ggml(특히 hexagon backend) 저장소에서 직접 검색해야 합니다.
       </p>
@@ -994,6 +1647,255 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
           <tr><td><code>HVX</code></td><td>Hexagon 벡터 실행 유닛</td><td>확인되지 않음</td></tr>
         </tbody>
       </table>
+    </section>
+
+    <section id="bench-verify">
+      <h2><span class="num">18.</span>모델별 Benchmark와 Quant Format 검증 전략</h2>
+      <p>
+        지금까지는 GGUF Q4_0 하나가 HTP kernel까지 내려가는 "세로 방향" 흐름을 따라왔습니다. 이 장은 방향을 바꿔, 여러 모델과 여러 quant format을 "가로로" 바꿔가며 무엇을 비교하고 무엇을 반드시 확인해야 하는지를 정리하는 실무 benchmark 관점의 자료입니다. Gemma 계열, Llama 계열, EXAONE 계열을 Qualcomm Gen4 / HTP PoC에서 번갈아 올릴 때, 어떤 항목이 모델마다 달라질 수 있고 어떤 것을 로그로 직접 확인해야 하는지에 초점을 둡니다. 이 문서를 쓰는 시점의 저장소에는 실제 모델 파일이 없으므로, 아래의 구체 수치와 tensor 구성은 모두 <strong>측정/확인 대상</strong>으로 남겨 두고 단정하지 않습니다.
+      </p>
+
+      <h3 id="bench-tied">17-1. Tie Word Embedding 확인</h3>
+      <p>
+        <code>tie_word_embeddings</code>(tied word embedding)는 입력 embedding과 출력 LM head가 <strong>같은 weight를 공유</strong>하는 구조를 말합니다. 즉 token id를 hidden vector로 바꾸는 <code>token_embd.weight</code>와, 마지막 hidden vector를 vocab logits로 바꾸는 output projection weight가 서로 다른 tensor가 아니라 <em>같은 원본 tensor</em>일 수 있다는 뜻입니다. 이렇게 하면 vocab 크기 × hidden 차원만큼의 큰 weight를 한 벌만 저장하면 되므로 모델 메모리 사용량이 줄어들 수 있습니다.
+      </p>
+      <figure>
+        <svg class="graph-svg" viewBox="0 0 640 300" style="max-width:600px;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="tied word embedding 구조">
+          <g class="gnode gn-op"><rect x="30" y="24" width="250" height="56" rx="8"></rect>
+            <text class="gname" x="155" y="48" text-anchor="middle">GET_ROWS (input embedding)</text>
+            <text class="gop" x="155" y="65" text-anchor="middle">token id → hidden vector</text></g>
+          <g class="gnode gn-op"><rect x="360" y="24" width="250" height="56" rx="8"></rect>
+            <text class="gname" x="485" y="48" text-anchor="middle">output projection (lm_head)</text>
+            <text class="gop" x="485" y="65" text-anchor="middle">hidden → vocab logits · MUL_MAT</text></g>
+          <g class="gnode gn-weight"><rect x="195" y="196" width="250" height="58" rx="8"></rect>
+            <text class="gname" x="320" y="220" text-anchor="middle">token_embd.weight</text>
+            <text class="gop" x="320" y="237" text-anchor="middle">tied 시 두 곳이 공유하는 원본 weight</text></g>
+          <path class="garrow" d="M270,196 L270,150 L155,150 L155,82"></path>
+          <path class="garrow" d="M370,196 L370,150 L485,150 L485,82"></path>
+          <text x="320" y="140" text-anchor="middle" style="fill:var(--fg-muted); font-size:11.5px;">tie_word_embeddings = true 이면 같은 tensor를 공유</text>
+        </svg>
+        <figcaption>그림 7. tied word embedding 구조. 같은 <code>token_embd.weight</code>가 입력 쪽에서는 <code>GET_ROWS</code>로, 출력 쪽에서는 <code>MUL_MAT</code>(logits projection)로 쓰입니다. <code>tie_word_embeddings=false</code>인 경우에는 별도의 <code>output.weight</code>가 존재할 수 있습니다(<strong>확인 필요</strong>).</figcaption>
+      </figure>
+      <p>
+        이 구조가 PoC에서 중요한 이유는 단순한 메모리 절감 이상입니다. tied 여부에 따라 GGUF 안에 output weight tensor가 <strong>별도로 존재</strong>하는지, 아니면 token embedding을 재사용하는지가 달라지고, 그에 따라 <code>GET_ROWS(token_embd.weight)</code>와 마지막 logits projection이 같은 weight를 공유하는지도 달라집니다. 또 HTP0-REPACK 관점에서는, 같은 원본 weight라도 이를 <strong>두 backend layout으로 중복 보관</strong>해야 하는지 아니면 하나를 공유할 수 있는지를 따로 확인해야 합니다. 결정적으로, input embedding은 성격이 <code>GET_ROWS</code>이고 output projection은 보통 <code>MUL_MAT</code>이므로, 같은 원본 weight를 공유하더라도 <strong>실행되는 op가 다릅니다</strong>. 따라서 "tied weight니까 HTP 배치 문제도 자동으로 해결된다"는 결론은 성립하지 않습니다 — 한쪽(GET_ROWS)이 CPU에 남고 다른 쪽(MUL_MAT)이 HTP로 가는 상황도 얼마든지 가능합니다.
+      </p>
+      <p>모델별로 tied 여부가 다를 수 있으므로 Llama·Gemma·EXAONE 어느 것도 단정하지 말고, 다음 항목을 실제 config/GGUF/dump로 확인해야 합니다.</p>
+      <ul>
+        <li>HF config에서 <code>tie_word_embeddings</code> 값 확인</li>
+        <li>GGUF tensor list에서 <code>token_embd.weight</code>, <code>output.weight</code>, <code>lm_head.weight</code> 존재 여부 확인</li>
+        <li>GGUF metadata에 tied embedding 관련 hint가 있는지 확인</li>
+        <li>llama.cpp model loader가 output weight를 별도 tensor로 만드는지, <code>token_embd</code>를 재사용하는지 확인</li>
+        <li>graph dump에서 마지막 logits projection의 <code>src0</code>가 어떤 weight tensor인지 확인</li>
+        <li>schedule dump에서 <code>GET_ROWS</code>와 output <code>MUL_MAT</code>가 각각 어느 backend로 배치되는지 확인</li>
+      </ul>
+      <div class="callout warn">
+        <strong>확인 필요</strong> — Llama, Gemma3, EXAONE 각각의 tied embedding 여부는 <strong>현재 repo에서 확인되지 않음</strong>입니다. 위 항목들을 실제 HF config와 GGUF tensor list로 확인하기 전에는 "이 모델은 tied다/아니다"라고 문서에 적지 않는 것이 안전합니다.
+      </div>
+
+      <h3 id="bench-matrix">17-2. 모델별 benchmark matrix</h3>
+      <p>
+        여러 모델을 바꿔가며 비교할 때는, 매번 "느낌"으로 판단하지 않도록 동일한 입력 조건에서 같은 항목을 측정하는 표를 미리 정해 두는 것이 좋습니다. 아래 개념도처럼 Llama·Gemma·EXAONE 세 후보를 <strong>같은 입력 조건</strong>에 넣고, 속도·메모리·graph split·품질이라는 네 축을 함께 봅니다.
+      </p>
+      <figure>
+        <div class="bench-lanes">
+          <div class="col">
+            <span class="model-chip">Llama 계열</span>
+            <span class="model-chip">Gemma3 계열</span>
+            <span class="model-chip">EXAONE 계열</span>
+          </div>
+          <div class="arrow">→</div>
+          <div class="col"><div class="mix-card"><strong>같은 입력 조건</strong><div class="sub" style="margin-top:6px;">input token 255 · context 2048<br>(actual token count 별도 기록)</div></div></div>
+          <div class="arrow">→</div>
+          <div class="col"><div class="mix-card"><strong>비교 축</strong><div class="sub" style="margin-top:6px;">속도(prefill/decode) · 메모리(RSS/KV) · graph split(HTP/CPU) · 품질 sanity</div></div></div>
+        </div>
+        <figcaption>그림 8. 모델별 benchmark 개념도. 서로 다른 모델을 동일 입력 조건에서 같은 축으로 비교합니다. 각 모델은 아직 <strong>예시 후보</strong>이며 실제 파일은 저장소에 없습니다.</figcaption>
+      </figure>
+      <p>
+        아래 표는 그 비교 항목을 구체적으로 나열한 것입니다. 모델 행은 모두 <strong>예시 후보</strong>이며, 측정이 필요한 칸은 "측정 필요", 로그로 확인해야 하는 칸은 "확인 필요"로 남겨 두었습니다.
+      </p>
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>항목 (metric)</th><th>Llama 계열 (예시 후보)</th><th>Gemma 계열 (예시 후보)</th><th>EXAONE 계열 (예시 후보)</th></tr></thead>
+        <tbody>
+          <tr><td>model name</td><td>Llama 3.2 1B (예시)</td><td>Gemma3 / Gemma4 e2b (예시)</td><td>EXAONE 4.0 1.2B (예시)</td></tr>
+          <tr><td>architecture</td><td>llama</td><td>gemma3 (확인 필요)</td><td>exaone (확인 필요)</td></tr>
+          <tr><td>parameter size</td><td>약 1.2B (확인 필요)</td><td>확인 필요</td><td>약 1.2B (확인 필요)</td></tr>
+          <tr><td>GGUF quant type</td><td>Q4_0 등 (선택)</td><td>선택</td><td>선택</td></tr>
+          <tr><td>file size</td><td>측정 필요</td><td>측정 필요</td><td>측정 필요</td></tr>
+          <tr><td>context length</td><td>2048 (기준)</td><td>2048 (기준)</td><td>2048 (기준)</td></tr>
+          <tr><td>input token length</td><td>255 (기준 · actual 기록)</td><td>255 (기준 · actual 기록)</td><td>255 (기준 · actual 기록)</td></tr>
+          <tr><td>prefill latency</td><td>측정 필요</td><td>측정 필요</td><td>측정 필요</td></tr>
+          <tr><td>decode tok/s</td><td>측정 필요</td><td>측정 필요</td><td>측정 필요</td></tr>
+          <tr><td>first token latency</td><td>측정 필요</td><td>측정 필요</td><td>측정 필요</td></tr>
+          <tr><td>peak RSS / memory</td><td>측정 필요</td><td>측정 필요</td><td>측정 필요</td></tr>
+          <tr><td>graph node count</td><td>dump 필요</td><td>dump 필요</td><td>dump 필요</td></tr>
+          <tr><td>HTP scheduled node count</td><td>dump 필요</td><td>dump 필요</td><td>dump 필요</td></tr>
+          <tr><td>CPU fallback node count</td><td>dump 필요</td><td>dump 필요</td><td>dump 필요</td></tr>
+          <tr><td>GET_ROWS backend</td><td>확인 필요</td><td>확인 필요</td><td>확인 필요</td></tr>
+          <tr><td>MUL_MAT backend ratio</td><td>확인 필요</td><td>확인 필요</td><td>확인 필요</td></tr>
+          <tr><td>HMX / HVX path 확인</td><td>확인 필요</td><td>확인 필요</td><td>확인 필요</td></tr>
+          <tr><td>quality sanity check</td><td>확인 필요</td><td>확인 필요</td><td>확인 필요</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout">
+        <strong>기준 조건</strong> — 프로젝트 기준 benchmark는 <strong>input token length 255, context length 2048</strong>을 기본으로 둡니다. 다만 모델별 최대 context나 tokenizer 차이 때문에 같은 프롬프트라도 <strong>actual token count가 달라질 수 있으므로</strong>, "255로 설정했다"가 아니라 각 모델에서 실제로 몇 개의 token으로 분해됐는지(actual token count)를 표에 함께 기록해야 공정한 비교가 됩니다.
+      </div>
+
+      <h3 id="bench-mixed">17-3. Mixed Precision 관련 정리</h3>
+      <p>
+        PoC 메모에 "Mixed Precision은 지원 안 함, GGUF Format → Q6_K_M / Q6_K / Q6_K_? 비교 : Q8 / Q4 Mixed Precision 확인 필요"라는 내용이 있습니다. 이 문장을 정확히 다루려면 먼저 "mixed precision"이라는 말이 가리킬 수 있는 서로 다른 층위를 분리해야 합니다. 흔히 한 단어로 뭉뚱그려지지만, 실제로는 네 가지가 섞여 있습니다.
+      </p>
+      <ul>
+        <li><strong>runtime mixed precision</strong> — 실행 중에 op별로 FP16, INT8, INT4 등을 자유롭게 섞어 하드웨어가 처리하는 방식(실행 층위).</li>
+        <li><strong>GGUF mixed quant format</strong> — 같은 GGUF 파일 안에서 tensor별로 Q4_K, Q5_K, Q6_K, Q8_0 등 서로 다른 quant type이 섞여 저장되는 방식(저장 층위).</li>
+        <li><strong>activation precision</strong> — runtime activation이 FP16/F32 그대로 흐르는지, 아니면 Q8 등으로 즉석 준비되는지.</li>
+        <li><strong>weight precision</strong> — GGUF에 저장된 weight 자체의 quant type.</li>
+      </ul>
+      <figure>
+        <div class="two-col">
+          <div class="mix-card">
+            <h4>GGUF mixed quant format (저장 관점)</h4>
+            <p class="sub">한 파일 안에서 tensor마다 다른 quant type으로 저장</p>
+            <div class="file-box">
+              <div style="font-size:11.5px; color:var(--fg-muted); margin-bottom:6px;">model.gguf · tensor data</div>
+              <span class="tchip tc-q4">blk.0.attn_q → Q4_0</span>
+              <span class="tchip tc-q6">blk.0.ffn_up → Q6_K</span>
+              <span class="tchip tc-q8">output → Q8_0</span>
+              <span class="tchip tc-f16">norm → F16/F32</span>
+            </div>
+          </div>
+          <div class="mix-card">
+            <h4>runtime mixed precision (실행 관점)</h4>
+            <p class="sub">하나의 op 실행 시점에 서로 다른 정밀도를 섞어 계산</p>
+            <div class="file-box">
+              <div style="font-size:11.5px; color:var(--fg-muted); margin-bottom:6px;">MUL_MAT 실행 lane (개념)</div>
+              <div class="lane">
+                <div class="l" style="background:#2b6f8c;">activation<br>FP16/Q8</div>
+                <div class="l" style="background:#8c7a2b;">×</div>
+                <div class="l" style="background:#2b8c5b;">weight<br>INT4/INT8</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>그림 9. 왼쪽은 <strong>저장 층위</strong>의 mixed quant(파일 안 tensor별 type이 다름), 오른쪽은 <strong>실행 층위</strong>의 mixed precision(한 op 안에서 정밀도를 섞음)입니다. 이 둘은 다른 이야기이며, 하나가 참이라고 다른 하나가 자동으로 참이 되지 않습니다.</figcaption>
+      </figure>
+      <p>
+        이 구분을 전제로 메모를 다시 읽으면, "Mixed Precision 미지원"이라는 문장부터 뜻이 두 갈래입니다. 이것이 <strong>runtime backend가 op별 mixed precision execution을 지원하지 않는다</strong>는 뜻인지, 아니면 <strong>GGUF의 tensor별 mixed quant format을 (로드/실행 단에서) 지원하지 않는다</strong>는 뜻인지를 먼저 갈라서 확인해야 합니다. 둘은 원인도 대응도 다릅니다.
+      </p>
+      <p>
+        또 하나 주의할 것은 이름의 층위입니다. <code>Q4_0</code>, <code>Q4_K_M</code>, <code>Q6_K</code>, <code>Q8_0</code> 같은 것은 file/tensor의 <strong>저장 format</strong>입니다. 특히 <code>Q4_K_M</code>처럼 뒤에 <code>_M</code>이 붙는 이름은 보통 <strong>단일 tensor quant type이 아니라, 여러 tensor에 서로 다른 type을 섞어 배치하는 file-type preset(medium 등)</strong>을 가리키는 경우가 많습니다. 즉 <code>Q4_K_M</code> 파일 안에서도 어떤 tensor는 Q4_K, 어떤 tensor는 Q6_K로 저장될 수 있습니다. 반면 <code>Q6_K</code>는 tensor 하나의 quant type을 가리키는 이름에 가깝습니다. 메모의 <code>Q6_K_M</code>이 실제로 어떤 구조를 뜻하는지(그런 이름이 이 버전에 존재하는지조차)는 <strong>llama.cpp 버전별로 다를 수 있으므로</strong>, 반드시 실제 <code>ggml_type_name()</code> 출력이나 tensor list dump로 검증해야 합니다 — <strong>현재 repo에서 확인되지 않음</strong>.
+      </p>
+      <p>
+        마지막으로 "Q8/Q4 mixed precision 확인"은 두 질문으로 쪼개야 합니다. 하나는 저장 질문("한 파일 안에서 어떤 tensor가 Q8이고 어떤 tensor가 Q4인가")이고, 다른 하나는 실행 질문("runtime이 Q4 weight × Q8 activation 같은 kernel을 실제로 쓰는가")입니다. 그리고 HTP backend가 어떤 GGUF quant type을 <code>supports_op</code> / <code>supports_mul_mat</code>에서 허용하는지는 <strong>실제 코드로 확인</strong>해야 하며, 지금은 어느 것도 "지원함"이라고 단정할 수 없습니다.
+      </p>
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>quant format</th><th>의미</th><th>기대 장점</th><th>리스크</th><th>HTP 확인 포인트</th></tr></thead>
+        <tbody>
+          <tr><td><code>Q4_0</code></td><td>4bit, block 32 + scale 1개 (오래된 단순 포맷)</td><td>작은 크기, tiled matmul 예시로 자주 언급</td><td>정밀도 낮음, 품질 저하 가능</td><td>HTP0-REPACK / tiled MUL_MAT 지원 여부 확인 필요</td></tr>
+          <tr><td><code>Q4_K_M</code></td><td>4bit k-quant 기반 file-type preset(tensor별 type 혼합)</td><td>같은 4bit대에서 품질 개선</td><td>k-quant/super-block 구조를 HTP kernel이 못 받을 수 있음</td><td>K-quant를 supports_mul_mat가 허용하는지 확인 필요</td></tr>
+          <tr><td><code>Q5_K_M</code></td><td>5bit k-quant 기반 preset</td><td>크기와 품질의 절충</td><td>상동(HTP K-quant 지원 여부 불확실)</td><td>실제 kernel path 확인 필요</td></tr>
+          <tr><td><code>Q6_K</code></td><td>6bit k-quant tensor type</td><td>품질 높음, 크기 중간</td><td>4bit tiled path와 다른 경로일 수 있음</td><td>Q6_K용 HTP path 존재 여부 확인 필요</td></tr>
+          <tr><td><code>Q6_K_M</code></td><td>이름상 Q6_K 계열 변형/preset (버전별 상이)</td><td>(주장 전) 확인 후 판단</td><td>이름이 표준인지 불확실, 오해 위험</td><td>ggml_type_name / tensor dump로 실체 검증 필요</td></tr>
+          <tr><td><code>Q8_0</code></td><td>8bit, 거의 무손실에 가까운 weight/activation 정밀도</td><td>품질 안정, activation 기준 정밀도로도 쓰임</td><td>크기 큼 → memory-bound 이득 감소</td><td>Q8 weight matmul / Q8 activation path 구분 확인 필요</td></tr>
+          <tr><td><code>F16</code></td><td>양자화 안 한 16bit baseline</td><td>정밀도 최고, 품질 비교 기준선</td><td>메모리·대역폭 최대</td><td>HTP FP16 matmul path 지원 여부 확인 필요</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout warn">
+        <strong>메모 처리 (ARN)</strong> — PoC 메모에 ": ARN"이라는 항목이 있으나, 이 용어는 현재 메모상 <strong>의미가 확정되지 않았습니다</strong>. ARM, Android Runtime, AI Runtime, NPU Runtime 등의 오기 가능성이 있으므로 <strong>작성자 확인이 필요</strong>합니다. 임의로 "ARM"으로 바꿔 해석하지 않고 TODO로 남겨 둡니다.
+      </div>
+
+      <h3 id="bench-q8q4">17-4. Q8 / Q4 mixed 여부 확인 방법</h3>
+      <p>
+        "이 모델이 Q8/Q4 mixed인가"라는 질문은 앞에서 나눈 대로 저장 관점과 실행 관점을 각각 확인해야 답할 수 있습니다. 실무적으로는 다음 산출물을 순서대로 보면 됩니다: GGUF tensor list dump, tensor type별 count, important tensor별 type, <code>graph_nodes.txt</code>, <code>graph_schedule.txt</code>, HTP <code>supports_mul_mat</code> 로그, 그리고 HTP kernel path 로그. 앞의 세 개는 저장 관점(무엇이 어떤 type으로 들어 있는가)을 말해 주고, 뒤의 것들은 실행 관점(그 type이 실제로 어느 backend·어느 kernel로 갔는가)을 말해 줍니다.
+      </p>
+      <p>
+        예를 들어 tensor list dump에서 <code>blk.0.attn_q.weight = Q4_0</code>, <code>blk.0.ffn_up.weight = Q6_K</code>, <code>output.weight = Q8_0</code>처럼 tensor마다 weight type이 다르게 나온다면, 이것은 <strong>GGUF 저장 관점에서 mixed quant가 맞습니다</strong>. 하지만 이것만으로 "runtime이 Q4 weight × Q8 activation path를 쓴다"고 말할 수는 없습니다. 그렇게 말하려면, 예컨대 그 Q4 weight가 <code>HTP0-REPACK</code>에 배치되어 있고 activation이 Q8로 준비되어 실제로 HMX 또는 HVX tiled path를 타는 것까지 <code>supports_mul_mat</code> 로그와 kernel path 로그로 확인되어야 합니다. 저장이 mixed라는 사실과 실행이 mixed-precision kernel을 탄다는 사실은 별개이며, 후자는 반드시 런타임 로그로 뒷받침되어야 합니다.
+      </p>
+      <pre><code>[TENSOR] blk.0.attn_q.weight   type=Q4_0   → 저장: 4bit
+[TENSOR] blk.0.ffn_up.weight   type=Q6_K   → 저장: 6bit k-quant
+[TENSOR] output.weight         type=Q8_0   → 저장: 8bit
+[TYPE-SUMMARY] Q4_0=xx  Q6_K=xx  Q8_0=xx  F16=xx   ← 저장 관점 mixed 여부
+# 위는 "저장 관점 mixed" 판정까지만. 아래 로그가 있어야 "실행 관점"까지 말할 수 있음:
+[SUPPORTS] op=MUL_MAT src0_type=Q4_0 buft=HTP0-REPACK → (허용?/거부? 확인 필요)
+[KERNEL]   op=MUL_MAT path=HMX|HVX-tiled|HVX-flat|CPU  → (실제 경로 확인 필요)</code></pre>
+      <div class="callout">
+        <strong>정리</strong> — tensor type별 count와 important tensor별 type만 보면 "저장 관점 mixed 여부"까지는 확정할 수 있습니다. 그러나 "실행 관점 mixed precision"은 <code>supports_mul_mat</code> 허용 여부와 kernel path 로그가 함께 확인될 때에만 주장할 수 있습니다. 이 두 로그는 <strong>현재 repo에서 확인되지 않음</strong>이므로, 실제 backend에서 남겨야 하는 후속 instrumentation 대상입니다.
+      </div>
+    </section>
+
+    <section id="prefill-decode">
+      <h2><span class="num">19.</span>Prefill과 Decode는 왜 다르게 측정해야 하는가</h2>
+      <p>
+        benchmark 수치를 하나로 뭉뚱그리면 가장 자주 잃어버리는 것이 prefill과 decode의 구분입니다. 이 둘은 같은 모델·같은 weight를 쓰더라도 실행 성격이 근본적으로 다르기 때문에, 성능도 병목도 다르게 나타납니다. <strong>Prefill</strong>은 prompt token 전체를 한 번에 처리해 KV cache를 채우는 단계이고, <strong>Decode</strong>는 매 step마다 새 token을 하나씩 생성하면서 KV cache를 읽고 업데이트하는 단계입니다.
+      </p>
+      <figure>
+        <div class="pd-cols">
+          <div>
+            <div class="pd-head prefill">Prefill (프롬프트 일괄 처리)</div>
+            <div class="pd-body">
+              prompt token 전체(예: 255개)를 한 번에 입력<br>→ 큰 batch/sequence로 matmul (병렬성 큼)<br>→ 각 layer의 K,V를 계산해 KV cache를 채움<br><br>
+              <strong>성격</strong>: sequence가 길어 matmul 병렬성이 상대적으로 크다. compute-bound 성향이 강해질 수 있음.
+            </div>
+          </div>
+          <div>
+            <div class="pd-head decode">Decode (토큰 1개씩 생성)</div>
+            <div class="pd-body">
+              직전 token 1개 입력<br>→ 작은 batch(=1)로 matmul<br>→ 과거 KV cache를 읽고, 이번 K,V를 append<br>→ token 1개 출력, 이 과정을 반복<br><br>
+              <strong>성격</strong>: batch가 작아 weight를 반복해서 읽는 memory-bound 성향이 강하다.
+            </div>
+          </div>
+        </div>
+        <figcaption>그림 10. Prefill과 Decode의 실행 구조 차이. 같은 모델이라도 prefill은 병렬성이 큰 일괄 처리, decode는 token 단위 반복이라 병목이 달라집니다.</figcaption>
+      </figure>
+      <p>
+        이 차이 때문에 Q4/Q6 같은 <strong>weight quantization의 효과는 decode tok/s에서 더 뚜렷하게 보이는 경향</strong>이 있습니다. decode는 토큰 하나를 만들기 위해 거대한 weight 행렬 전체를 매번 훑어야 하는 memory-bound 상황이라, weight를 읽는 byte 수를 줄이는 양자화의 이득이 곧바로 속도로 이어지기 쉽기 때문입니다. 반면 prefill은 병렬성이 커서 상대적으로 compute 쪽 비중이 커질 수 있어, 같은 양자화라도 이득의 크기가 다르게 나타날 수 있습니다.
+      </p>
+      <p>
+        또한 <strong>first token latency</strong>는 prefill 전체 시간과 첫 decode step의 영향을 함께 받으므로, decode tok/s 하나만으로는 설명되지 않습니다. KV cache의 dtype, 저장 위치(buffer/backend), 그리고 CPU↔HTP 사이의 copy cost도 decode 성능에 큰 영향을 줍니다. 무엇보다 CPU/GPU/HTP fallback이 prefill과 decode에서 <strong>다르게 나타날 수 있으므로</strong>(예: prefill에서는 HTP로 갔던 op가 decode의 batch=1 조건에서는 CPU로 떨어지는 식), 두 단계의 로그를 반드시 따로 남겨야 합니다. 아래는 각 단계에서 분리해 기록해야 할 측정 항목입니다.
+      </p>
+      <ul>
+        <li>prefill total time / prefill token/sec</li>
+        <li>first token latency</li>
+        <li>decode token/sec / ms per token</li>
+        <li>KV cache allocation size / KV cache dtype</li>
+        <li>KV cache backend·buffer 위치</li>
+        <li>CPU↔HTP copy count (가능하면)</li>
+        <li>graph split for prefill / graph split for decode</li>
+      </ul>
+      <div class="callout">
+        <strong>핵심</strong> — prefill과 decode를 하나의 "평균 tok/s"로 합치면 병목의 위치가 가려집니다. first token latency(주로 prefill 지배)와 decode tok/s(주로 memory-bound weight 읽기 지배)를 <strong>분리해서 기록</strong>해야, 어떤 quant format이나 어떤 backend 배치가 실제로 어디를 개선했는지 판단할 수 있습니다.
+      </div>
+    </section>
+
+    <section id="bench-plan">
+      <h2><span class="num">20.</span>Benchmark 실행 계획</h2>
+      <p>
+        모델과 quant format을 처음부터 무작정 늘리면 조합 수가 폭발해 일정 리스크가 커지고, 정작 어떤 변수가 결과를 바꿨는지 해석하기 어려워집니다. 그래서 PoC 목적에 맞게 <strong>1차 → 2차 → 3차</strong>로 나눠, 한 번에 하나의 축만 바꾸며 진행하는 편이 안전합니다.
+      </p>
+      <p>
+        <strong>1차 (baseline 고정)</strong>는 현재 가장 안정적으로 실행 가능한 baseline 모델 <strong>1개</strong>와 quant format <strong>1~2개</strong>만으로 시작합니다. 목표는 수치 비교가 아니라 <em>파이프라인 완성</em>입니다 — graph dump, schedule dump, 그리고 prefill/decode 로그를 끝까지 한 번 뽑아내어, 이후 단계에서 재사용할 측정·dump 절차를 확정합니다.
+      </p>
+      <p>
+        <strong>2차 (모델 축 비교)</strong>는 Llama / Gemma / EXAONE를 <strong>같은 입력 조건</strong>으로 비교합니다. 이때 tokenizer 차이로 같은 프롬프트라도 actual token count가 달라질 수 있으므로, 앞서 강조한 대로 각 모델의 <strong>actual token count를 반드시 기록</strong>해 비교의 공정성을 확보합니다.
+      </p>
+      <p>
+        <strong>3차 (quant 축 비교)</strong>는 <code>Q4_0</code>, <code>Q6_K</code>, <code>Q6_K_M</code>, <code>Q8_0</code> 등 quant format을 비교합니다. 이 단계에서는 "파일 크기 / 메모리 / decode tok/s / HTP split ratio / 품질 sanity"를 한 화면에서 함께 보고, 크기를 줄인 것이 실제로 속도·배치·품질에 어떤 대가를 치렀는지를 판단합니다.
+      </p>
+      <p>각 단계는 다음 산출물을 남겨, 나중에 재현·비교할 수 있게 합니다.</p>
+      <ul>
+        <li><code>benchmark_results.json</code> — 조건과 측정 수치(prefill/decode/메모리 등)</li>
+        <li><code>graph_nodes.txt</code> — graph build 결과(op·src dependency)</li>
+        <li><code>graph_schedule.txt</code> — scheduler 이후 backend 배치</li>
+        <li><code>tensor_type_summary.txt</code> — tensor type별 count와 important tensor별 type</li>
+        <li><code>htp_kernel_path.log</code> — HMX / HVX-tiled / HVX-flat / CPU 중 실제 경로</li>
+        <li><code>report.md</code> — 위 산출물을 사람이 읽는 형태로 요약한 보고</li>
+      </ul>
+      <div class="callout warn">
+        <strong>확인 필요</strong> — 위 산출물의 파일명·경로, 그리고 이들을 생성하는 dump/로그 기능(예: <code>DUMP_GGML_GRAPH</code>, tensor type dump, kernel path 로그)은 이 문서가 제안하는 <strong>컨벤션</strong>이며, 실제 생성 방법은 <strong>현재 repo에서 확인되지 않음</strong>입니다. 1차 단계의 핵심 작업이 바로 이 산출물들을 뽑아내는 instrumentation을 실제 backend에 붙이는 일입니다.
+      </div>
     </section>
 
     <footer class="doc-footer">
@@ -1027,6 +1929,230 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
         if(toggle) toggle.checked = false;
       });
     });
+  })();
+</script>
+
+<script>
+  (function(){
+    var root = document.getElementById('decodeAnim');
+    if(!root) return;
+    var diagram = document.getElementById('daDiagram');
+
+    var S = [
+      {title:'token id', cat:'act', graph:'inp_tokens', pkt:'id=42',
+       desc:'token id가 입력됩니다. 예시로 token id = 42. 아직 벡터가 아니라 정수 하나입니다.',
+       toy:'token id = 42', w:null,
+       A:{buf:'—',be:'입력',path:'—',warn:false,note:'이번 step의 시작점.'},
+       B:{buf:'—',be:'입력',path:'—',warn:false,note:'동일.'}},
+
+      {title:'GET_ROWS', cat:'op', graph:'inp_embd = GET_ROWS(token_embd.weight)', pkt:'emb row',
+       desc:'GET_ROWS가 token id를 인덱스로 token_embd.weight에서 해당 row를 꺼냅니다. 이 weight는 GGUF에 저장된 고정 tensor이고, 꺼낸 embedding row가 첫 activation이 됩니다.',
+       toy:'embedding row = [0.12, -0.31, 0.08, 0.44]',
+       w:{badge:'GGUF weight', name:'token_embd.weight', detail:'GGUF 저장 고정 weight', act:'token id (정수 인덱스)', path:'lookup (matmul 아님)'},
+       A:{buf:'CPU_Mapped',be:'CPU',path:'—',warn:false,note:'CPU에서 조회하되 이후 흐름으로 한 번만 정돈해 넘겨 왕복을 최소화하는 시나리오.'},
+       B:{buf:'CPU_Mapped',be:'CPU',path:'—',warn:true,note:'CPU_Mapped에 남아 CPU에서 실행 → 다음 matmul을 위해 activation을 HTP로 복사해야 함.'}},
+
+      {title:'RMSNorm', cat:'op', graph:'blk.0.attn_norm → normed_hidden', pkt:'normed',
+       desc:'embedding row가 RMSNorm을 지나 normed_hidden 이라는 activation이 됩니다. norm이라는 이름과 달리 activation function이 아니라, 매 step 새로 계산되는 입력 벡터입니다.',
+       toy:'normed_hidden = [0.20, -0.52, 0.13, 0.74]',
+       w:{badge:'norm scale', name:'blk.0.attn_norm.weight', detail:'정규화 스케일 파라미터', act:'embedding row', path:'RMS_NORM (matmul 아님)'},
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'정상 경로에서는 activation이 이미 HTP 쪽에 자리 잡은 상태.'},
+       B:{buf:'CPU→HTP',be:'HTP',path:'elementwise',warn:true,note:'직전 GET_ROWS 결과를 HTP로 복사한 뒤에야 이어짐(copy 비용 발생).'}},
+
+      {title:'Q / K / V matmul', cat:'op', graph:'blk.0.attn_q / attn_k / attn_v', pkt:'q,k,v',
+       desc:'normed_hidden(activation)이 Wq/Wk/Wv(사전 양자화된 Q4_0 weight)와 각각 matmul되어 Q,K,V가 나옵니다. weight는 고정값, activation은 이번 step에만 존재하는 runtime 값입니다. HTP에서 잘 돌려면 op 지원만으로는 부족하고, weight가 HTP0-REPACK에 있고 src/dst buffer가 HTP와 맞아야 합니다.',
+       toy:'q = [0.91, -0.12, 0.33]\nk = [0.15, 0.67, -0.21]\nv = [0.48, -0.09, 0.72]',
+       w:{badge:'Q4_0·REPACK', name:'Wq / Wk / Wv', detail:'Q4_0 · HTP0-REPACK', act:'normed_hidden (runtime)', path:'HMX / HVX tiled 후보'},
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'weight가 HTP0-REPACK에 있고 buffer가 맞아 HTP matmul로 진행.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'matmul 자체는 HTP지만, activation이 방금 CPU에서 넘어와 copy 비용이 앞에 붙음.'}},
+
+      {title:'RoPE', cat:'op', graph:'ROPE (Q, K)', pkt:"q',k'",
+       desc:'Q와 K에 RoPE가 적용되어 위치 정보가 회전 형태로 주입됩니다. V에는 적용되지 않습니다.',
+       toy:"q' = [0.88, -0.20, 0.31]\nk' = [0.10, 0.70, -0.18]", w:null,
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'위치 회전은 elementwise 성격의 연산.'},
+       B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
+
+      {title:'KV cache write / read', cat:'cache', graph:'cache_k / cache_v', pkt:'k,v→cache', kv:true,
+       desc:'이번 step의 K,V는 KV cache의 현재 시점(t=127)에 기록되고, 과거 step들의 K,V가 함께 읽혀 attention 입력이 됩니다. cache의 dtype·저장 위치와 CPU↔HTP 복사 비용이 decode 성능에 크게 영향을 줍니다.',
+       toy:'cache_k[t=127] = k\ncache_v[t=127] = v', w:null,
+       A:{buf:'HTP cache buffer',be:'HTP',path:'cache view',warn:false,note:'cache가 HTP 쪽에 있어 read/write에 추가 복사가 없음.'},
+       B:{buf:'다른 backend',be:'혼합',path:'cache view',warn:true,note:'cache가 다른 위치에 있으면 매 read/write마다 복사가 생길 수 있음.'}},
+
+      {title:'Attention', cat:'op', graph:'softmax(QKᵀ)·V', pkt:'attn_out',
+       desc:'현재 Q와 캐시된 K들로 attention score를 구하고 softmax한 뒤, 그 가중치로 V들을 가중합해 attention output을 만듭니다.',
+       toy:'score = [1.8, 0.2, -0.5]\nsoftmax = [0.68, 0.14, 0.08]\nattn_out = [0.27, -0.40, 0.66]', w:null,
+       A:{buf:'HTP',be:'HTP',path:'HTP kernels',warn:false,note:'—'},
+       B:{buf:'HTP',be:'HTP/CPU 혼합',path:'—',warn:true,note:'일부 연산이 CPU fallback이면 여기서도 split이 끊길 수 있음.'}},
+
+      {title:'Output projection', cat:'op', graph:'blk.0.attn_output', pkt:'proj',
+       desc:'attention output이 Wo(Q4_0 weight)를 거쳐 다시 hidden space로 투영되고, residual로 원래 hidden에 더해집니다.',
+       toy:'proj = [0.33, -0.18, 0.51]\n(+ residual)',
+       w:{badge:'Q4_0·REPACK', name:'Wo (blk.0.attn_output.weight)', detail:'Q4_0 · HTP0-REPACK', act:'attn_out (runtime)', path:'HMX / HVX tiled 후보'},
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'—'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'앞단 split이 잦으면 residual add 전후로 복사가 낄 수 있음.'}},
+
+      {title:'FFN (gate/up/down)', cat:'op', graph:'blk.0.ffn_gate / ffn_up / ffn_down', pkt:'ffn_out',
+       desc:'ffn_norm 뒤에 gate projection과 up projection(둘 다 Q4_0 matmul)이 계산되고, gate에 SILU를 적용해 up과 원소별로 곱한 다음 down projection으로 되돌립니다. 다시 residual로 더해집니다.',
+       toy:'gate·up → SILU·mul → down\nffn_out = [0.19, -0.22, 0.40]',
+       w:{badge:'Q4_0·REPACK', name:'Wgate / Wup / Wdown', detail:'Q4_0 · HTP0-REPACK', act:'ffn 입력 (runtime)', path:'HMX / HVX tiled 후보'},
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'세 matmul이 연달아 HTP path.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'중간 activation이 CPU를 경유하면 matmul마다 복사가 누적됨.'}},
+
+      {title:'layer output / 다음 step', cat:'out', graph:'layer 0 output → 다음 layer', pkt:'output',
+       desc:'이 layer의 출력이 만들어졌습니다. 실제로는 이 과정이 layer 수만큼 반복되고, 마지막 layer 뒤 final norm과 logits projection을 거쳐 다음 token이 sampling됩니다.',
+       toy:'layer_output = [0.30, -0.44, 0.71]\n→ 다음 step 입력', w:null,
+       A:{buf:'HTP',be:'대부분 HTP',path:'—',warn:false,note:'왕복이 최소화된 경로. 대부분의 matmul이 HTP에서 실행.'},
+       B:{buf:'혼합',be:'CPU/HTP 혼합',path:'—',warn:true,note:'GET_ROWS의 CPU 잔류에서 시작된 왕복이 전체에 누적된 경로.'}}
+    ];
+
+    var cur = 0, mode = 'A', timer = null;
+    var nodes = [], chevs = [];
+
+    // build diagram
+    diagram.innerHTML = '';
+    var packet = document.createElement('div');
+    packet.className = 'dpacket';
+    packet.id = 'daPacket';
+    S.forEach(function(s, idx){
+      if(idx > 0){
+        var ch = document.createElement('div');
+        ch.className = 'dchev'; ch.textContent = '▼';
+        diagram.appendChild(ch); chevs.push(ch);
+      }
+      var n = document.createElement('div');
+      n.className = 'dnode cat-' + s.cat;
+      var kvHtml = s.kv ? '<div class="kvcells" data-kv="1"></div>' : '';
+      n.innerHTML = '<div class="dn-title"></div><div class="dn-graph"></div><div class="dn-badges"></div>' + kvHtml;
+      n.querySelector('.dn-title').textContent = s.title;
+      diagram.appendChild(n); nodes.push(n);
+      if(s.kv){
+        var cells = n.querySelector('.kvcells');
+        for(var t=120; t<=127; t++){
+          var c = document.createElement('div');
+          c.className = 'kvcell'; c.dataset.t = t; c.textContent = t;
+          cells.appendChild(c);
+        }
+      }
+    });
+    diagram.appendChild(packet);
+
+    function nl(str){ return str.replace(/\n/g,'<br>'); }
+    function beClass(be){
+      if(be.indexOf('CPU') === -1 && be.indexOf('혼합') === -1 && be.indexOf('HTP') !== -1) return 'db-htp';
+      return 'db-cpu';
+    }
+
+    function renderBadges(){
+      var showBk = document.getElementById('tgBackend').checked;
+      var showNm = document.getElementById('tgNames').checked;
+      S.forEach(function(s, idx){
+        var n = nodes[idx];
+        var g = n.querySelector('.dn-graph');
+        g.textContent = showNm ? s.graph : '';
+        g.style.display = showNm ? 'block' : 'none';
+        var b = n.querySelector('.dn-badges');
+        var html = '';
+        if(s.w) html += '<span class="dbadge db-w">' + s.w.badge + '</span>';
+        if(showBk){
+          var m = s[mode];
+          html += '<span class="dbadge ' + beClass(m.be) + '">' + m.be + '</span>';
+          if(m.path.indexOf('HMX') !== -1) html += '<span class="dbadge db-path">HMX/HVX</span>';
+          if(m.warn) html += '<span class="dbadge db-warn">⚠ copy</span>';
+        }
+        b.innerHTML = html;
+      });
+    }
+
+    function render(){
+      var showToy = document.getElementById('tgToy').checked;
+      var showBk = document.getElementById('tgBackend').checked;
+      var m = S[cur][mode];
+
+      nodes.forEach(function(n, idx){
+        n.classList.toggle('active', idx === cur);
+        n.classList.toggle('dim', idx !== cur);
+      });
+      chevs.forEach(function(ch, idx){
+        // chev idx sits between node idx and idx+1
+        ch.classList.toggle('on', idx === cur - 1);
+      });
+
+      // packet position
+      var an = nodes[cur];
+      packet.textContent = S[cur].pkt;
+      packet.style.top = (an.offsetTop + an.offsetHeight/2 - 11) + 'px';
+
+      // kv cells highlight only on kv step
+      var kvCellsWrap = diagram.querySelector('[data-kv="1"]');
+      if(kvCellsWrap){
+        var isKv = !!S[cur].kv;
+        kvCellsWrap.querySelectorAll('.kvcell').forEach(function(c){
+          c.classList.remove('read','write');
+          if(isKv){ c.classList.add(c.dataset.t === '127' ? 'write' : 'read'); }
+        });
+      }
+
+      // side panels
+      document.getElementById('daIdx').textContent = (cur+1);
+      document.getElementById('daSlider').value = cur;
+      document.getElementById('daDesc').innerHTML = S[cur].desc;
+
+      var toyPanel = document.getElementById('daToyPanel');
+      toyPanel.style.display = showToy ? 'block' : 'none';
+      document.getElementById('daToy').innerHTML = nl(S[cur].toy) +
+        '<div class="da-hint" style="margin-top:6px;">실제는 1024차원이지만 이해를 위해 4차원 toy vector로 축소한 개념 예시입니다.</div>';
+
+      var wp = document.getElementById('daWeight');
+      if(S[cur].w){
+        var w = S[cur].w;
+        wp.innerHTML =
+          '<div class="row"><span class="k">고정 weight</span><code>' + w.name + '</code> (' + w.detail + ')</div>' +
+          '<div class="row"><span class="k">runtime activation</span>' + w.act + '</div>' +
+          '<div class="row"><span class="k">kernel path</span>' + w.path + ' <span style="color:var(--fg-muted)">(확인 필요)</span></div>';
+      } else {
+        wp.innerHTML = '<div class="row" style="color:var(--fg-muted)">이 단계는 weight matmul이 아닙니다 (lookup · 정규화 · 회전 · cache · attention 등).</div>';
+      }
+
+      var bp = document.getElementById('daBackendPanel');
+      bp.style.display = showBk ? 'block' : 'none';
+      document.getElementById('daBackend').innerHTML =
+        '<div class="row"><span class="k">src0 buffer</span>' + m.buf + '</div>' +
+        '<div class="row"><span class="k">backend</span>' + m.be + '</div>' +
+        '<div class="row"><span class="k">path</span>' + m.path + '</div>' +
+        '<div class="row ' + (m.warn ? 'da-warn' : '') + '">' + (m.warn ? '⚠ ' : '') + m.note + '</div>';
+
+      renderBadges();
+    }
+
+    function go(i){ cur = (i + S.length) % S.length; render(); }
+    function stop(){ if(timer){ clearInterval(timer); timer = null; document.getElementById('daPlay').textContent = '▶ 재생'; } }
+    function play(){
+      if(timer){ stop(); return; }
+      document.getElementById('daPlay').textContent = '⏸ 일시정지';
+      timer = setInterval(function(){ go(cur + 1); }, 1600);
+    }
+
+    root.querySelectorAll('.da-controls button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var a = btn.dataset.act;
+        if(a === 'play') play();
+        else if(a === 'next'){ stop(); go(cur + 1); }
+        else if(a === 'prev'){ stop(); go(cur - 1); }
+      });
+    });
+    document.getElementById('daSlider').addEventListener('input', function(){ stop(); go(parseInt(this.value,10)); });
+    root.querySelectorAll('input[name="daMode"]').forEach(function(r){
+      r.addEventListener('change', function(){ if(this.checked){ mode = this.value; render(); } });
+    });
+    ['tgNames','tgBackend','tgToy'].forEach(function(id){
+      document.getElementById(id).addEventListener('change', render);
+    });
+    window.addEventListener('resize', function(){
+      var an = nodes[cur];
+      packet.style.top = (an.offsetTop + an.offsetHeight/2 - 11) + 'px';
+    });
+
+    render();
   })();
 </script>
 
