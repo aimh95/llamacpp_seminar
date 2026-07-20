@@ -554,6 +554,11 @@
   .dnode.dim{opacity:.5;}
   .dn-title{font-weight:700; font-size:13.5px;}
   .dn-graph{font-size:11px; color:var(--fg-muted); font-family:"Consolas","D2Coding",monospace; margin-top:1px;}
+  .dn-head{display:flex; align-items:center; gap:6px; margin-bottom:2px;}
+  .dn-idx{font-family:"Consolas","D2Coding",monospace; font-size:10.5px; color:var(--fg-muted); font-weight:700;}
+  .dn-op{font-family:"Consolas","D2Coding",monospace; font-size:10px; font-weight:700; padding:1px 6px; border-radius:5px; background:var(--accent-soft); color:var(--accent);}
+  .dn-src{font-family:"Consolas","D2Coding",monospace; font-size:10.5px; color:var(--fg-muted); margin-top:3px; line-height:1.5;}
+  .dnode.srchl{border-color:#4f9c74; border-style:dashed; box-shadow:0 0 0 2px rgba(79,156,116,0.35); opacity:1;}
   .dn-badges{margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;}
   .dbadge{font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; border:1px solid;}
   .db-w{background:#e3edf7; border-color:#5f86ab; color:#1c2430;}
@@ -1497,22 +1502,22 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
         <figcaption>그림 5-1. Decode 1 step의 전체 흐름 개요(축약판). 실제 그래프에서는 각 박스가 여러 개의 ggml node로 더 세분화됩니다.</figcaption>
       </figure>
 
-      <h3 id="da-player">토큰 1개 decode step 애니메이션</h3>
+      <h3 id="da-player">토큰 1개 decode step 애니메이션 (graph node 기준)</h3>
       <p>
-        아래 위젯은 위 흐름을 한 단계씩 재생합니다. <strong>재생/일시정지</strong>로 자동 진행하거나 <strong>이전/다음</strong>과 슬라이더로 원하는 단계로 이동할 수 있고, 오른쪽 패널에서 그 단계의 설명·toy 값·weight·backend 정보를 함께 볼 수 있습니다. 위쪽 <strong>모드</strong> 선택으로 "정상 HTP 경로(모드 A)"와 "CPU↔HTP 왕복이 생기는 비효율 경로(모드 B)"를 비교해 보세요. 아래 수치는 모두 <strong>개념 설명용 toy example</strong>이며(실제는 <code>d_embedding=1024</code>이지만 이해를 위해 4차원 toy vector로 축소), 실제 backend 배치는 반드시 로그와 profile로 확인해야 합니다.
+        아래 위젯은 위 개요를 개념 단계가 아니라 <strong>실제 ggml 그래프의 node 단위</strong>로 한 칸씩 재생합니다. 즉 <a href="#gs-graph-shape">11-5</a>의 그래프 그림과 <a href="#gs-graph-dump">11-6</a>의 graph dump에 나오는 것과 같은 <code>#000</code>~<code>#020</code> 노드들이, <code>ggml_build_forward_expand</code>가 정리한 <strong>위상정렬(실행) 순서</strong>대로 진행됩니다. 각 노드는 자신의 <code>op</code>(<code>GET_ROWS</code>·<code>RMS_NORM</code>·<code>MUL_MAT</code>·<code>ROPE</code>·<code>SOFT_MAX</code>·<code>SILU</code>·<code>MUL</code>·<code>ADD</code>)와 <code>src0/src1</code> 의존성을 함께 보여 주고, 현재 노드가 입력으로 삼는 <strong>src 노드는 초록 점선으로 강조</strong>됩니다(residual처럼 멀리 떨어진 노드를 참조하면 그 연결이 눈에 보입니다). <strong>재생/일시정지</strong>·<strong>이전/다음</strong>·슬라이더로 이동하고, 오른쪽 패널에서 그 노드의 설명·toy 값·src(weight vs activation)·backend 배치를 확인할 수 있습니다. 위쪽 <strong>모드</strong>로 "정상 HTP 경로(A)"와 "CPU↔HTP 왕복(B)"을 비교해 보세요. 수치는 모두 <strong>개념 설명용 toy example</strong>이며(실제는 <code>d_embedding=1024</code>이지만 이해를 위해 3~4차원 toy vector로 축소), 실제 backend 배치는 반드시 로그와 profile로 확인해야 합니다.
       </p>
       <div class="decode-anim" id="decodeAnim">
         <div class="da-controls">
           <button data-act="play" id="daPlay">▶ 재생</button>
           <button class="ghost" data-act="prev">◀ 이전</button>
           <button class="ghost" data-act="next">다음 ▶</button>
-          <span class="da-step">Step <b id="daIdx">1</b> / <b id="daTot">10</b></span>
-          <input type="range" id="daSlider" min="0" max="9" value="0" aria-label="decode step">
+          <span class="da-step">node <b id="daIdx">1</b> / <b id="daTot">21</b></span>
+          <input type="range" id="daSlider" min="0" max="20" value="0" aria-label="graph node">
           <div class="da-set">
             <label><input type="radio" name="daMode" value="A" checked> 모드 A: 정상 HTP 경로</label>
             <label><input type="radio" name="daMode" value="B"> 모드 B: CPU↔HTP 왕복</label>
             <span style="flex:0 0 12px;"></span>
-            <label><input type="checkbox" id="tgNames"> graph 이름 표시</label>
+            <label><input type="checkbox" id="tgSrc" checked> src 의존성 강조</label>
             <label><input type="checkbox" id="tgBackend" checked> backend 정보</label>
             <label><input type="checkbox" id="tgToy" checked> toy 값</label>
           </div>
@@ -1524,11 +1529,11 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
           <aside class="da-side">
             <div class="da-panel"><h4>단계 설명</h4><div id="daDesc" class="row">—</div></div>
             <div class="da-panel" id="daToyPanel"><h4>toy 데이터 (개념 예시)</h4><div id="daToy" class="da-toy-vec">—</div></div>
-            <div class="da-panel" id="daWeightPanel"><h4>weight vs activation</h4><div id="daWeight">—</div></div>
+            <div class="da-panel" id="daWeightPanel"><h4>이 node의 src (weight vs activation)</h4><div id="daWeight">—</div></div>
             <div class="da-panel" id="daBackendPanel"><h4>backend / buffer overlay (예시 시나리오)</h4><div id="daBackend">—</div></div>
           </aside>
         </div>
-        <p class="da-hint">현재 활성 노드는 테두리 glow로 강조되고, 초록색 data packet은 그 단계에서 흐르는 activation을 나타냅니다. KV cache는 시간축 셀 배열로 표현하며, 이번 step에 기록되는 칸(t=127)은 진한 주황으로 표시됩니다.</p>
+        <p class="da-hint">현재 활성 노드는 파란 glow로, 그 노드가 입력으로 삼는 src 노드는 초록 점선으로 강조됩니다. 초록색 data packet은 이 노드가 만들어 내는 결과(activation)를 나타냅니다. KV cache는 시간축 셀 배열로 표현하며, 이번 step에 기록되는 칸(t=127)은 진한 주황으로 표시됩니다.</p>
       </div>
 
       <h3 id="da-getrows">왜 GET_ROWS 하나가 중요할까?</h3>
@@ -1560,7 +1565,7 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
       </table>
       </div>
       <div class="callout">
-        <strong>애니메이션과 실제 graph의 차이</strong> — 이 애니메이션은 이해를 위한 <strong>축약판</strong>입니다. 실제 graph dump에서는 한 박스가 <code>GET_ROWS</code>, <code>RMS_NORM</code>, <code>MUL_MAT</code>, <code>ROPE</code>, <code>ADD</code>, <code>MUL</code>, <code>SILU</code> 등 더 잘게 쪼개진 node들로 나타나고, shape도 toy vector가 아니라 훨씬 큰 실제 차원(예: 1024)을 가집니다. 각 node가 실제로 어느 backend·어느 kernel path로 갔는지는 여기 표시된 "예시 시나리오"가 아니라, graph_schedule 로그와 HTP kernel path 로그로 직접 확인해야 합니다.
+        <strong>애니메이션과 실제 graph의 차이</strong> — 이 애니메이션은 실제 ggml 그래프의 node 순서(위상정렬)를 따르도록 만들었지만, 여전히 <strong>layer 0만 잘라낸 축약판</strong>입니다. 실제 그래프에서는 이 구조가 layer 수만큼 반복되고, 뒤에 final norm과 logits projection(lm_head)이 더 붙습니다. 또 여기 표시한 <code>#000</code>~<code>#020</code>의 인덱스·이름·op 조합은 <strong>개념 예시</strong>이며, 실제 <code>graph_nodes.txt</code>의 인덱스·이름·세분화 정도(예: RMS_NORM이 내부적으로 여러 node로 나뉘는지)와 shape는 llama.cpp 버전·모델에 따라 다를 수 있습니다. 값도 toy vector이고, 각 node가 실제로 어느 backend·어느 kernel path로 갔는지는 여기 표시된 "예시 시나리오"가 아니라 <code>graph_schedule.txt</code>와 HTP kernel path 로그로 직접 확인해야 합니다.
       </div>
     </section>
 
@@ -1938,75 +1943,161 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
     if(!root) return;
     var diagram = document.getElementById('daDiagram');
 
+    // 실제 ggml 그래프의 node 순서(위상정렬)를 따르는 축약 예시 (layer 0)
     var S = [
-      {title:'token id', cat:'act', graph:'inp_tokens', pkt:'id=42',
-       desc:'token id가 입력됩니다. 예시로 token id = 42. 아직 벡터가 아니라 정수 하나입니다.',
-       toy:'token id = 42', w:null,
-       A:{buf:'—',be:'입력',path:'—',warn:false,note:'이번 step의 시작점.'},
-       B:{buf:'—',be:'입력',path:'—',warn:false,note:'동일.'}},
+      {idx:'#000', key:'inp_tokens', name:'inp_tokens', op:'NONE', cat:'act', pkt:'id=42',
+       desc:'이번 decode step의 입력. token id 하나(예: 42)가 I32 tensor로 들어오는 leaf 노드입니다. op=NONE, 즉 계산이 아니라 그래프의 시작점입니다.',
+       toy:'inp_tokens = 42', s0:null, s1:null, wb:null,
+       A:{buf:'—',be:'입력',path:'—',warn:false,note:'그래프의 시작 leaf. 계산 없음.'},
+       B:{buf:'—',be:'입력',path:'—',warn:false,note:'그래프의 시작 leaf. 계산 없음.'}},
 
-      {title:'GET_ROWS', cat:'op', graph:'inp_embd = GET_ROWS(token_embd.weight)', pkt:'emb row',
-       desc:'GET_ROWS가 token id를 인덱스로 token_embd.weight에서 해당 row를 꺼냅니다. 이 weight는 GGUF에 저장된 고정 tensor이고, 꺼낸 embedding row가 첫 activation이 됩니다.',
-       toy:'embedding row = [0.12, -0.31, 0.08, 0.44]',
-       w:{badge:'GGUF weight', name:'token_embd.weight', detail:'GGUF 저장 고정 weight', act:'token id (정수 인덱스)', path:'lookup (matmul 아님)'},
-       A:{buf:'CPU_Mapped',be:'CPU',path:'—',warn:false,note:'CPU에서 조회하되 이후 흐름으로 한 번만 정돈해 넘겨 왕복을 최소화하는 시나리오.'},
-       B:{buf:'CPU_Mapped',be:'CPU',path:'—',warn:true,note:'CPU_Mapped에 남아 CPU에서 실행 → 다음 matmul을 위해 activation을 HTP로 복사해야 함.'}},
+      {idx:'#001', key:'inp_embd', name:'inp_embd', op:'GET_ROWS', cat:'op', pkt:'inp_embd',
+       desc:'token id로 token_embd.weight에서 해당 row를 꺼내는 lookup 연산. 결과 inp_embd가 이후 모든 계산의 첫 activation이 됩니다.',
+       toy:'inp_embd = [0.12, -0.31, 0.08, 0.44]',
+       s0:{l:'token_embd.weight',kind:'weight',det:'GGUF 저장 lookup table'}, s1:{l:'inp_tokens',kind:'act',key:'inp_tokens'}, wb:'GGUF weight',
+       A:{buf:'CPU_Mapped',be:'CPU',path:'lookup',warn:false,note:'token_embd가 CPU_Mapped라 CPU에서 조회하되, 한 번만 정돈해 넘겨 왕복을 최소화.'},
+       B:{buf:'CPU_Mapped',be:'CPU',path:'lookup',warn:true,note:'CPU에 남아 이후 HTP matmul을 위해 결과를 복사해야 함 → 왕복의 시작점.'}},
 
-      {title:'RMSNorm', cat:'op', graph:'blk.0.attn_norm → normed_hidden', pkt:'normed',
-       desc:'embedding row가 RMSNorm을 지나 normed_hidden 이라는 activation이 됩니다. norm이라는 이름과 달리 activation function이 아니라, 매 step 새로 계산되는 입력 벡터입니다.',
-       toy:'normed_hidden = [0.20, -0.52, 0.13, 0.74]',
-       w:{badge:'norm scale', name:'blk.0.attn_norm.weight', detail:'정규화 스케일 파라미터', act:'embedding row', path:'RMS_NORM (matmul 아님)'},
-       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'정상 경로에서는 activation이 이미 HTP 쪽에 자리 잡은 상태.'},
-       B:{buf:'CPU→HTP',be:'HTP',path:'elementwise',warn:true,note:'직전 GET_ROWS 결과를 HTP로 복사한 뒤에야 이어짐(copy 비용 발생).'}},
+      {idx:'#002', key:'attn_norm', name:'blk.0.attn_norm', op:'RMS_NORM', cat:'op', pkt:'attn_norm',
+       desc:'inp_embd를 RMS 정규화하고 attn_norm.weight로 스케일해 normed_hidden(=blk.0.attn_norm) activation을 만듭니다. 이름과 달리 activation function이 아니라 매 step 새로 계산되는 입력 벡터입니다.',
+       toy:'blk.0.attn_norm = [0.20, -0.52, 0.13, 0.74]',
+       s0:{l:'inp_embd',kind:'act',key:'inp_embd'}, s1:{l:'blk.0.attn_norm.weight',kind:'weight',det:'정규화 스케일(F32)'}, wb:'norm scale',
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'activation이 이미 HTP 쪽에 자리 잡은 상태.'},
+       B:{buf:'CPU→HTP',be:'HTP',path:'elementwise',warn:true,note:'직전 GET_ROWS 결과를 HTP로 복사한 뒤에야 이어짐(copy 비용).'}},
 
-      {title:'Q / K / V matmul', cat:'op', graph:'blk.0.attn_q / attn_k / attn_v', pkt:'q,k,v',
-       desc:'normed_hidden(activation)이 Wq/Wk/Wv(사전 양자화된 Q4_0 weight)와 각각 matmul되어 Q,K,V가 나옵니다. weight는 고정값, activation은 이번 step에만 존재하는 runtime 값입니다. HTP에서 잘 돌려면 op 지원만으로는 부족하고, weight가 HTP0-REPACK에 있고 src/dst buffer가 HTP와 맞아야 합니다.',
-       toy:'q = [0.91, -0.12, 0.33]\nk = [0.15, 0.67, -0.21]\nv = [0.48, -0.09, 0.72]',
-       w:{badge:'Q4_0·REPACK', name:'Wq / Wk / Wv', detail:'Q4_0 · HTP0-REPACK', act:'normed_hidden (runtime)', path:'HMX / HVX tiled 후보'},
-       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'weight가 HTP0-REPACK에 있고 buffer가 맞아 HTP matmul로 진행.'},
-       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'matmul 자체는 HTP지만, activation이 방금 CPU에서 넘어와 copy 비용이 앞에 붙음.'}},
+      {idx:'#003', key:'attn_q', name:'blk.0.attn_q', op:'MUL_MAT', cat:'op', pkt:'attn_q',
+       desc:'normed_hidden에 Wq(Q4_0 weight)를 곱해 Q를 만드는 MUL_MAT. src0가 고정 weight, src1이 runtime activation입니다. HTP로 가려면 weight가 HTP0-REPACK에 있고 buffer가 맞아야 합니다.',
+       toy:'blk.0.attn_q = [0.91, -0.12, 0.33]',
+       s0:{l:'blk.0.attn_q.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'blk.0.attn_norm',kind:'act',key:'attn_norm'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'weight가 REPACK에 있어 HTP matmul로 진행.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'matmul은 HTP지만 activation이 방금 CPU에서 넘어와 copy가 앞에 붙음.'}},
 
-      {title:'RoPE', cat:'op', graph:'ROPE (Q, K)', pkt:"q',k'",
-       desc:'Q와 K에 RoPE가 적용되어 위치 정보가 회전 형태로 주입됩니다. V에는 적용되지 않습니다.',
-       toy:"q' = [0.88, -0.20, 0.31]\nk' = [0.10, 0.70, -0.18]", w:null,
-       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'위치 회전은 elementwise 성격의 연산.'},
+      {idx:'#004', key:'attn_k', name:'blk.0.attn_k', op:'MUL_MAT', cat:'op', pkt:'attn_k',
+       desc:'normed_hidden에 Wk(Q4_0)를 곱해 K를 만드는 MUL_MAT. attn_q와 src1(=attn_norm)을 공유합니다.',
+       toy:'blk.0.attn_k = [0.15, 0.67, -0.21]',
+       s0:{l:'blk.0.attn_k.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'blk.0.attn_norm',kind:'act',key:'attn_norm'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'HTP matmul.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'activation copy 비용이 앞에 붙음.'}},
+
+      {idx:'#005', key:'attn_v', name:'blk.0.attn_v', op:'MUL_MAT', cat:'op', pkt:'attn_v',
+       desc:'normed_hidden에 Wv(Q4_0)를 곱해 V를 만드는 MUL_MAT. V에는 RoPE가 적용되지 않습니다.',
+       toy:'blk.0.attn_v = [0.48, -0.09, 0.72]',
+       s0:{l:'blk.0.attn_v.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'blk.0.attn_norm',kind:'act',key:'attn_norm'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'HTP matmul.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'activation copy 비용이 앞에 붙음.'}},
+
+      {idx:'#006', key:'attn_q_rope', name:'blk.0.attn_q_rope', op:'ROPE', cat:'op', pkt:"q'",
+       desc:'Q에 위치 정보를 회전 형태로 주입하는 ROPE. src0=attn_q, src1=inp_pos(위치 인덱스).',
+       toy:"blk.0.attn_q_rope = [0.88, -0.20, 0.31]",
+       s0:{l:'blk.0.attn_q',kind:'act',key:'attn_q'}, s1:{l:'inp_pos',kind:'pos'}, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'위치 회전(elementwise).'},
        B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
 
-      {title:'KV cache write / read', cat:'cache', graph:'cache_k / cache_v', pkt:'k,v→cache', kv:true,
-       desc:'이번 step의 K,V는 KV cache의 현재 시점(t=127)에 기록되고, 과거 step들의 K,V가 함께 읽혀 attention 입력이 됩니다. cache의 dtype·저장 위치와 CPU↔HTP 복사 비용이 decode 성능에 크게 영향을 줍니다.',
-       toy:'cache_k[t=127] = k\ncache_v[t=127] = v', w:null,
-       A:{buf:'HTP cache buffer',be:'HTP',path:'cache view',warn:false,note:'cache가 HTP 쪽에 있어 read/write에 추가 복사가 없음.'},
-       B:{buf:'다른 backend',be:'혼합',path:'cache view',warn:true,note:'cache가 다른 위치에 있으면 매 read/write마다 복사가 생길 수 있음.'}},
+      {idx:'#007', key:'attn_k_rope', name:'blk.0.attn_k_rope', op:'ROPE', cat:'op', pkt:"k'",
+       desc:'K에 RoPE를 적용합니다. src0=attn_k, src1=inp_pos.',
+       toy:"blk.0.attn_k_rope = [0.10, 0.70, -0.18]",
+       s0:{l:'blk.0.attn_k',kind:'act',key:'attn_k'}, s1:{l:'inp_pos',kind:'pos'}, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'위치 회전(elementwise).'},
+       B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
 
-      {title:'Attention', cat:'op', graph:'softmax(QKᵀ)·V', pkt:'attn_out',
-       desc:'현재 Q와 캐시된 K들로 attention score를 구하고 softmax한 뒤, 그 가중치로 V들을 가중합해 attention output을 만듭니다.',
-       toy:'score = [1.8, 0.2, -0.5]\nsoftmax = [0.68, 0.14, 0.08]\nattn_out = [0.27, -0.40, 0.66]', w:null,
-       A:{buf:'HTP',be:'HTP',path:'HTP kernels',warn:false,note:'—'},
-       B:{buf:'HTP',be:'HTP/CPU 혼합',path:'—',warn:true,note:'일부 연산이 CPU fallback이면 여기서도 split이 끊길 수 있음.'}},
+      {idx:'#008', key:'kv_cache', name:'cache_k / cache_v (CPY·VIEW)', op:'CPY', cat:'cache', pkt:'k,v→t127', kv:true,
+       desc:'이번 step의 K(rope)와 V를 KV cache의 현재 시점 t=127에 기록(CPY)하고, 과거 K,V는 VIEW로 읽습니다. cache dtype·위치와 복사 비용이 decode 성능을 좌우합니다.',
+       toy:'cache_k[t=127] = blk.0.attn_k_rope\ncache_v[t=127] = blk.0.attn_v',
+       s0:{l:'blk.0.attn_k_rope',kind:'act',key:'attn_k_rope'}, s1:{l:'blk.0.attn_v',kind:'act',key:'attn_v'}, wb:null,
+       A:{buf:'HTP cache buffer',be:'HTP',path:'cache view',warn:false,note:'cache가 HTP 쪽에 있어 read/write 추가 복사 없음.'},
+       B:{buf:'다른 backend',be:'혼합',path:'cache view',warn:true,note:'cache 위치가 다르면 매 read/write마다 복사가 생길 수 있음.'}},
 
-      {title:'Output projection', cat:'op', graph:'blk.0.attn_output', pkt:'proj',
-       desc:'attention output이 Wo(Q4_0 weight)를 거쳐 다시 hidden space로 투영되고, residual로 원래 hidden에 더해집니다.',
-       toy:'proj = [0.33, -0.18, 0.51]\n(+ residual)',
-       w:{badge:'Q4_0·REPACK', name:'Wo (blk.0.attn_output.weight)', detail:'Q4_0 · HTP0-REPACK', act:'attn_out (runtime)', path:'HMX / HVX tiled 후보'},
-       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'—'},
-       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'앞단 split이 잦으면 residual add 전후로 복사가 낄 수 있음.'}},
+      {idx:'#009', key:'kq', name:'kq (scores)', op:'MUL_MAT', cat:'op', pkt:'kq',
+       desc:'현재 Q(rope)와 캐시된 K들의 내적으로 attention score를 만드는 MUL_MAT. weight가 아니라 activation×cache 곱입니다.',
+       toy:'kq = [1.8, 0.2, -0.5]',
+       s0:{l:'cache_k (view)',kind:'cache',key:'kv_cache'}, s1:{l:'blk.0.attn_q_rope',kind:'act',key:'attn_q_rope'}, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'HTP kernel',warn:false,note:'score matmul (activation×cache).'},
+       B:{buf:'HTP',be:'HTP',path:'HTP kernel',warn:false,note:'—'}},
 
-      {title:'FFN (gate/up/down)', cat:'op', graph:'blk.0.ffn_gate / ffn_up / ffn_down', pkt:'ffn_out',
-       desc:'ffn_norm 뒤에 gate projection과 up projection(둘 다 Q4_0 matmul)이 계산되고, gate에 SILU를 적용해 up과 원소별로 곱한 다음 down projection으로 되돌립니다. 다시 residual로 더해집니다.',
-       toy:'gate·up → SILU·mul → down\nffn_out = [0.19, -0.22, 0.40]',
-       w:{badge:'Q4_0·REPACK', name:'Wgate / Wup / Wdown', detail:'Q4_0 · HTP0-REPACK', act:'ffn 입력 (runtime)', path:'HMX / HVX tiled 후보'},
-       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'세 matmul이 연달아 HTP path.'},
-       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'중간 activation이 CPU를 경유하면 matmul마다 복사가 누적됨.'}},
+      {idx:'#010', key:'kq_softmax', name:'kq_soft_max', op:'SOFT_MAX', cat:'op', pkt:'softmax',
+       desc:'score에 (scale·mask 포함) softmax를 적용해 attention 가중치를 만듭니다.',
+       toy:'kq_soft_max = [0.68, 0.14, 0.08]',
+       s0:{l:'kq',kind:'act',key:'kq'}, s1:null, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'HTP kernel',warn:false,note:'—'},
+       B:{buf:'HTP',be:'HTP/CPU 혼합',path:'—',warn:true,note:'softmax가 CPU fallback이면 여기서 split이 끊길 수 있음.'}},
 
-      {title:'layer output / 다음 step', cat:'out', graph:'layer 0 output → 다음 layer', pkt:'output',
-       desc:'이 layer의 출력이 만들어졌습니다. 실제로는 이 과정이 layer 수만큼 반복되고, 마지막 layer 뒤 final norm과 logits projection을 거쳐 다음 token이 sampling됩니다.',
-       toy:'layer_output = [0.30, -0.44, 0.71]\n→ 다음 step 입력', w:null,
-       A:{buf:'HTP',be:'대부분 HTP',path:'—',warn:false,note:'왕복이 최소화된 경로. 대부분의 matmul이 HTP에서 실행.'},
+      {idx:'#011', key:'kqv', name:'kqv', op:'MUL_MAT', cat:'op', pkt:'kqv',
+       desc:'attention 가중치로 캐시된 V들을 가중합하는 MUL_MAT. src0=cache_v(view), src1=kq_soft_max.',
+       toy:'kqv = [0.27, -0.40, 0.66]',
+       s0:{l:'cache_v (view)',kind:'cache',key:'kv_cache'}, s1:{l:'kq_soft_max',kind:'act',key:'kq_softmax'}, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'HTP kernel',warn:false,note:'weighted sum matmul.'},
+       B:{buf:'HTP',be:'HTP',path:'HTP kernel',warn:false,note:'—'}},
+
+      {idx:'#012', key:'attn_out', name:'blk.0.attn_out', op:'MUL_MAT', cat:'op', pkt:'attn_out',
+       desc:'attention 결과(kqv)를 Wo(Q4_0)로 다시 hidden space로 투영하는 output projection MUL_MAT.',
+       toy:'blk.0.attn_out = [0.33, -0.18, 0.51]',
+       s0:{l:'blk.0.attn_output.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'kqv',kind:'act',key:'kqv'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'HTP matmul.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'앞단 split이 잦으면 전후로 복사가 낄 수 있음.'}},
+
+      {idx:'#013', key:'ffn_inp', name:'ffn_inp (residual)', op:'ADD', cat:'op', pkt:'ffn_inp',
+       desc:'output projection 결과를 원래 inp_embd에 더하는 residual ADD. src1이 멀리 있는 #001 inp_embd를 다시 참조합니다(skip 연결).',
+       toy:'ffn_inp = [0.60, -0.58, 0.79]',
+       s0:{l:'blk.0.attn_out',kind:'act',key:'attn_out'}, s1:{l:'inp_embd (residual skip)',kind:'act',key:'inp_embd'}, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'residual add(elementwise).'},
+       B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
+
+      {idx:'#014', key:'ffn_norm', name:'blk.0.ffn_norm', op:'RMS_NORM', cat:'op', pkt:'ffn_norm',
+       desc:'FFN 진입 전 정규화. ffn_inp를 RMS 정규화하고 ffn_norm.weight로 스케일합니다.',
+       toy:'blk.0.ffn_norm = [0.22, -0.61, 0.30]',
+       s0:{l:'ffn_inp',kind:'act',key:'ffn_inp'}, s1:{l:'blk.0.ffn_norm.weight',kind:'weight',det:'정규화 스케일(F32)'}, wb:'norm scale',
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'},
+       B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
+
+      {idx:'#015', key:'ffn_gate', name:'blk.0.ffn_gate', op:'MUL_MAT', cat:'op', pkt:'gate',
+       desc:'ffn_norm에 Wgate(Q4_0)를 곱하는 gate projection MUL_MAT.',
+       toy:'blk.0.ffn_gate = [0.40, -0.15, 0.52]',
+       s0:{l:'blk.0.ffn_gate.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'blk.0.ffn_norm',kind:'act',key:'ffn_norm'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'HTP matmul.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'중간 activation이 CPU 경유 시 copy 누적.'}},
+
+      {idx:'#016', key:'ffn_gate_silu', name:'blk.0.ffn_gate (SILU)', op:'SILU', cat:'op', pkt:'silu',
+       desc:'gate 결과에 SILU 활성화를 적용하는 UNARY op.',
+       toy:'silu(gate) = [0.24, -0.07, 0.33]',
+       s0:{l:'blk.0.ffn_gate',kind:'act',key:'ffn_gate'}, s1:null, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'},
+       B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
+
+      {idx:'#017', key:'ffn_up', name:'blk.0.ffn_up', op:'MUL_MAT', cat:'op', pkt:'up',
+       desc:'ffn_norm에 Wup(Q4_0)를 곱하는 up projection MUL_MAT. ffn_gate와 src1(=ffn_norm)을 공유합니다.',
+       toy:'blk.0.ffn_up = [0.31, 0.44, -0.12]',
+       s0:{l:'blk.0.ffn_up.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'blk.0.ffn_norm',kind:'act',key:'ffn_norm'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'HTP matmul.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'중간 activation이 CPU 경유 시 copy 누적.'}},
+
+      {idx:'#018', key:'ffn_par', name:'ffn_gate_par', op:'MUL', cat:'op', pkt:'gate*up',
+       desc:'SILU(gate)와 up을 원소별로 곱하는 elementwise MUL. src0=ffn_gate_silu, src1=ffn_up.',
+       toy:'ffn_gate_par = [0.07, -0.03, -0.04]',
+       s0:{l:'blk.0.ffn_gate (SILU)',kind:'act',key:'ffn_gate_silu'}, s1:{l:'blk.0.ffn_up',kind:'act',key:'ffn_up'}, wb:null,
+       A:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'},
+       B:{buf:'HTP',be:'HTP',path:'elementwise',warn:false,note:'—'}},
+
+      {idx:'#019', key:'ffn_out', name:'blk.0.ffn_out', op:'MUL_MAT', cat:'op', pkt:'ffn_out',
+       desc:'곱한 결과를 Wdown(Q4_0)로 되돌리는 down projection MUL_MAT.',
+       toy:'blk.0.ffn_out = [0.19, -0.22, 0.40]',
+       s0:{l:'blk.0.ffn_down.weight',kind:'weight',det:'Q4_0 · HTP0-REPACK'}, s1:{l:'ffn_gate_par',kind:'act',key:'ffn_par'}, wb:'Q4_0·REPACK',
+       A:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:false,note:'HTP matmul.'},
+       B:{buf:'HTP0-REPACK',be:'HTP',path:'HMX / HVX tiled 후보',warn:true,note:'앞단 왕복이 여기까지 누적될 수 있음.'}},
+
+      {idx:'#020', key:'l_out', name:'l_out → 다음 layer', op:'ADD', cat:'out', pkt:'l_out',
+       desc:'FFN 결과를 ffn_inp에 더하는 residual ADD. 이 l_out이 다음 layer의 입력이 되고, 마지막 layer 뒤엔 final norm과 lm_head(logits projection)로 이어집니다.',
+       toy:'l_out = [0.79, -0.80, 1.19]\n→ 다음 layer 입력',
+       s0:{l:'blk.0.ffn_out',kind:'act',key:'ffn_out'}, s1:{l:'ffn_inp (residual skip)',kind:'act',key:'ffn_inp'}, wb:null,
+       A:{buf:'HTP',be:'대부분 HTP',path:'—',warn:false,note:'왕복이 최소화된 경로. 대부분의 matmul이 HTP.'},
        B:{buf:'혼합',be:'CPU/HTP 혼합',path:'—',warn:true,note:'GET_ROWS의 CPU 잔류에서 시작된 왕복이 전체에 누적된 경로.'}}
     ];
 
     var cur = 0, mode = 'A', timer = null;
-    var nodes = [], chevs = [];
+    var nodes = [], chevs = [], keyIndex = {};
+
+    document.getElementById('daTot').textContent = S.length;
+    var slider = document.getElementById('daSlider');
+    slider.max = S.length - 1;
 
     // build diagram
     diagram.innerHTML = '';
@@ -2014,6 +2105,7 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
     packet.className = 'dpacket';
     packet.id = 'daPacket';
     S.forEach(function(s, idx){
+      keyIndex[s.key] = idx;
       if(idx > 0){
         var ch = document.createElement('div');
         ch.className = 'dchev'; ch.textContent = '▼';
@@ -2022,8 +2114,12 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
       var n = document.createElement('div');
       n.className = 'dnode cat-' + s.cat;
       var kvHtml = s.kv ? '<div class="kvcells" data-kv="1"></div>' : '';
-      n.innerHTML = '<div class="dn-title"></div><div class="dn-graph"></div><div class="dn-badges"></div>' + kvHtml;
-      n.querySelector('.dn-title').textContent = s.title;
+      n.innerHTML =
+        '<div class="dn-head"><span class="dn-idx"></span><span class="dn-op"></span></div>' +
+        '<div class="dn-title"></div><div class="dn-src"></div><div class="dn-badges"></div>' + kvHtml;
+      n.querySelector('.dn-idx').textContent = s.idx;
+      n.querySelector('.dn-op').textContent = s.op;
+      n.querySelector('.dn-title').textContent = s.name;
       diagram.appendChild(n); nodes.push(n);
       if(s.kv){
         var cells = n.querySelector('.kvcells');
@@ -2041,18 +2137,38 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
       if(be.indexOf('CPU') === -1 && be.indexOf('혼합') === -1 && be.indexOf('HTP') !== -1) return 'db-htp';
       return 'db-cpu';
     }
+    function kindTag(s){
+      if(s.kind === 'weight') return '고정 weight' + (s.det ? ' · ' + s.det : '');
+      if(s.kind === 'act') return 'runtime activation';
+      if(s.kind === 'pos') return '위치 인덱스 (inp_pos)';
+      if(s.kind === 'cache') return 'KV cache view';
+      return '';
+    }
+    function srcKeysOf(s){
+      var out = [];
+      if(s.s0 && s.s0.key != null) out.push(s.s0.key);
+      if(s.s1 && s.s1.key != null) out.push(s.s1.key);
+      return out;
+    }
 
     function renderBadges(){
       var showBk = document.getElementById('tgBackend').checked;
-      var showNm = document.getElementById('tgNames').checked;
+      var showSrc = document.getElementById('tgSrc').checked;
       S.forEach(function(s, idx){
         var n = nodes[idx];
-        var g = n.querySelector('.dn-graph');
-        g.textContent = showNm ? s.graph : '';
-        g.style.display = showNm ? 'block' : 'none';
+        var sc = n.querySelector('.dn-src');
+        if(showSrc){
+          var parts = [];
+          if(s.s0) parts.push('src0=' + s.s0.l);
+          if(s.s1) parts.push('src1=' + s.s1.l);
+          sc.textContent = parts.length ? parts.join('  ·  ') : '(leaf · src 없음)';
+          sc.style.display = 'block';
+        } else {
+          sc.textContent = ''; sc.style.display = 'none';
+        }
         var b = n.querySelector('.dn-badges');
         var html = '';
-        if(s.w) html += '<span class="dbadge db-w">' + s.w.badge + '</span>';
+        if(s.wb) html += '<span class="dbadge db-w">' + s.wb + '</span>';
         if(showBk){
           var m = s[mode];
           html += '<span class="dbadge ' + beClass(m.be) + '">' + m.be + '</span>';
@@ -2066,52 +2182,54 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
     function render(){
       var showToy = document.getElementById('tgToy').checked;
       var showBk = document.getElementById('tgBackend').checked;
-      var m = S[cur][mode];
+      var showSrc = document.getElementById('tgSrc').checked;
+      var s = S[cur], m = s[mode];
 
+      var srcKeys = showSrc ? srcKeysOf(s) : [];
       nodes.forEach(function(n, idx){
+        var isSrc = srcKeys.indexOf(S[idx].key) !== -1;
         n.classList.toggle('active', idx === cur);
-        n.classList.toggle('dim', idx !== cur);
+        n.classList.toggle('dim', idx !== cur && !isSrc);
+        n.classList.toggle('srchl', isSrc && idx !== cur);
       });
-      chevs.forEach(function(ch, idx){
-        // chev idx sits between node idx and idx+1
-        ch.classList.toggle('on', idx === cur - 1);
-      });
+      chevs.forEach(function(ch, idx){ ch.classList.toggle('on', idx === cur - 1); });
 
       // packet position
       var an = nodes[cur];
-      packet.textContent = S[cur].pkt;
+      packet.textContent = s.pkt;
       packet.style.top = (an.offsetTop + an.offsetHeight/2 - 11) + 'px';
 
-      // kv cells highlight only on kv step
+      // kv cells highlight only on kv node
       var kvCellsWrap = diagram.querySelector('[data-kv="1"]');
       if(kvCellsWrap){
-        var isKv = !!S[cur].kv;
+        var isKv = !!s.kv;
         kvCellsWrap.querySelectorAll('.kvcell').forEach(function(c){
           c.classList.remove('read','write');
           if(isKv){ c.classList.add(c.dataset.t === '127' ? 'write' : 'read'); }
         });
       }
 
-      // side panels
+      // step indicator + description
       document.getElementById('daIdx').textContent = (cur+1);
-      document.getElementById('daSlider').value = cur;
-      document.getElementById('daDesc').innerHTML = S[cur].desc;
+      slider.value = cur;
+      document.getElementById('daDesc').innerHTML =
+        '<code>' + s.idx + ' ' + s.name + '</code> · op=<code>' + s.op + '</code><br>' + s.desc;
 
       var toyPanel = document.getElementById('daToyPanel');
       toyPanel.style.display = showToy ? 'block' : 'none';
-      document.getElementById('daToy').innerHTML = nl(S[cur].toy) +
-        '<div class="da-hint" style="margin-top:6px;">실제는 1024차원이지만 이해를 위해 4차원 toy vector로 축소한 개념 예시입니다.</div>';
+      document.getElementById('daToy').innerHTML = nl(s.toy) +
+        '<div class="da-hint" style="margin-top:6px;">실제는 1024차원이지만 이해를 위해 3~4차원 toy vector로 축소한 개념 예시입니다.</div>';
 
       var wp = document.getElementById('daWeight');
-      if(S[cur].w){
-        var w = S[cur].w;
-        wp.innerHTML =
-          '<div class="row"><span class="k">고정 weight</span><code>' + w.name + '</code> (' + w.detail + ')</div>' +
-          '<div class="row"><span class="k">runtime activation</span>' + w.act + '</div>' +
-          '<div class="row"><span class="k">kernel path</span>' + w.path + ' <span style="color:var(--fg-muted)">(확인 필요)</span></div>';
+      var rows = '<div class="row"><span class="k">op</span><code>' + s.op + '</code></div>';
+      if(!s.s0 && !s.s1){
+        rows += '<div class="row" style="color:var(--fg-muted)">leaf node — src 없음 (그래프 입력).</div>';
       } else {
-        wp.innerHTML = '<div class="row" style="color:var(--fg-muted)">이 단계는 weight matmul이 아닙니다 (lookup · 정규화 · 회전 · cache · attention 등).</div>';
+        if(s.s0) rows += '<div class="row"><span class="k">src0</span><code>' + s.s0.l + '</code> <span style="color:var(--fg-muted)">— ' + kindTag(s.s0) + '</span></div>';
+        if(s.s1) rows += '<div class="row"><span class="k">src1</span><code>' + s.s1.l + '</code> <span style="color:var(--fg-muted)">— ' + kindTag(s.s1) + '</span></div>';
       }
+      if(s.op === 'MUL_MAT') rows += '<div class="row"><span class="k">kernel path</span>HMX / HVX tiled 후보 <span style="color:var(--fg-muted)">(확인 필요)</span></div>';
+      wp.innerHTML = rows;
 
       var bp = document.getElementById('daBackendPanel');
       bp.style.display = showBk ? 'block' : 'none';
@@ -2129,7 +2247,7 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
     function play(){
       if(timer){ stop(); return; }
       document.getElementById('daPlay').textContent = '⏸ 일시정지';
-      timer = setInterval(function(){ go(cur + 1); }, 1600);
+      timer = setInterval(function(){ go(cur + 1); }, 1500);
     }
 
     root.querySelectorAll('.da-controls button').forEach(function(btn){
@@ -2140,11 +2258,11 @@ sum_i (a_i_int8 * scale_a) * (q_i_int4 * scale_w)
         else if(a === 'prev'){ stop(); go(cur - 1); }
       });
     });
-    document.getElementById('daSlider').addEventListener('input', function(){ stop(); go(parseInt(this.value,10)); });
+    slider.addEventListener('input', function(){ stop(); go(parseInt(this.value,10)); });
     root.querySelectorAll('input[name="daMode"]').forEach(function(r){
       r.addEventListener('change', function(){ if(this.checked){ mode = this.value; render(); } });
     });
-    ['tgNames','tgBackend','tgToy'].forEach(function(id){
+    ['tgSrc','tgBackend','tgToy'].forEach(function(id){
       document.getElementById(id).addEventListener('change', render);
     });
     window.addEventListener('resize', function(){
