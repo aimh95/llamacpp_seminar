@@ -1793,6 +1793,24 @@ Source Offset
           <p><code>weights_map</code> 조회와 Tensor Shape 검증은 <code>get_weight()</code>, <code>get_tensor_meta()</code>, <code>check_tensor_dims()</code> 경로에서 처리됩니다</p>
         </div>
       </details>
+
+      <details class="fold">
+        <summary><code>ggml_backend_tensor_set()</code>: 실제 Byte를 Buffer에 쓰는 공통 진입점</summary>
+        <div class="fold-body">
+          <p><code>ggml_backend_tensor_set()</code>은 실제 함수이며 <code>ggml/include/ggml-backend.h</code>에 선언되고 <code>ggml/src/ggml-backend.cpp</code>에 구현되어 있다. 이 함수는 직접 <code>memcpy</code>나 HTP Repack을 수행하지 않는다. <code>tensor-&gt;buffer</code>를 확인한 뒤 <code>buf-&gt;iface.set_tensor()</code>를 호출하는 공통 진입점이다.</p>
+          <p>실제 동작은 Backend별 <code>set_tensor</code> Callback에서 수행된다.</p>
+          <ul>
+            <li>CPU: 메모리 복사</li>
+            <li>GPU: Device Memory 업로드</li>
+            <li>HTP0-REPACK: Backend Callback 내부 Repack</li>
+          </ul>
+          <p><code>llama_model_loader::load_all_data()</code>에서 mmap 주소 또는 파일에서 읽은 Weight Byte를 <code>ggml_backend_tensor_set()</code>에 전달한다.</p>
+          <div class="chain">GGUF Weight Byte
+<span class="arrow">→</span> ggml_backend_tensor_set()
+<span class="arrow">→</span> buffer-&gt;iface.set_tensor()
+<span class="arrow">→</span> CPU 복사 / Device 업로드 / HTP Repack</div>
+        </div>
+      </details>
     </section>
 
     <section id="cpu-mapped-repack">

@@ -1754,6 +1754,25 @@ CPU 복사 / GPU 업로드 / HTP Repack
     
     `weights_map` 조회와 Tensor Shape 검증은 `get_weight()`, `get_tensor_meta()`, `check_tensor_dims()` 경로에서 처리됩니다
     
+- `ggml_backend_tensor_set()`: 실제 Byte를 Buffer에 쓰는 공통 진입점
+    
+    `ggml_backend_tensor_set()`은 실제 함수이며 `ggml/include/ggml-backend.h`에 선언되고 `ggml/src/ggml-backend.cpp`에 구현되어 있다. 이 함수는 직접 `memcpy`나 HTP Repack을 수행하지 않는다. `tensor->buffer`를 확인한 뒤 `buf->iface.set_tensor()`를 호출하는 공통 진입점이다.
+    
+    실제 동작은 Backend별 `set_tensor` Callback에서 수행된다.
+    
+    - CPU: 메모리 복사
+    - GPU: Device Memory 업로드
+    - HTP0-REPACK: Backend Callback 내부 Repack
+    
+    `llama_model_loader::load_all_data()`에서 mmap 주소 또는 파일에서 읽은 Weight Byte를 `ggml_backend_tensor_set()`에 전달한다.
+    
+    ```
+    GGUF Weight Byte
+    → ggml_backend_tensor_set()
+    → buffer->iface.set_tensor()
+    → CPU 복사 / Device 업로드 / HTP Repack
+    ```
+    
 
 ---
 
