@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>llama.cpp GGUF Mixed Precision Quantization Guide — token_embd Q8_0 + Weights Q4_0 (Qualcomm HTP)</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --panel:#ffffff; --panel2:#eef2f6; --border:#d6dce3;
+    --fg:#1b2430; --muted:#5a6472; --accent:#2b5b8c; --accent-soft:#dce9f5;
+    --green:#1f8a4c; --green-soft:#dcefe0; --amber:#8a5e12; --amber-soft:#fbeccb;
+    --purple:#6b4fc0; --purple-soft:#e6e1f7; --red:#b5362b; --red-soft:#fbe0dc;
+    --code-bg:#0f1621; --code-fg:#e6edf3; --shadow:0 1px 3px rgba(20,30,50,.10);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Segoe UI",Roboto,sans-serif;
+    line-height:1.75; font-size:16px;
+  }
+  a{color:var(--accent);}
+  code{font-family:"D2Coding","Consolas","SFMono-Regular",Menlo,monospace;}
+  p code,li code,td code{background:var(--panel2); border:1px solid var(--border); padding:1px 5px; border-radius:4px; font-size:.88em; word-break:break-word;}
+  h1,h2,h3,h4{line-height:1.32; font-weight:700;}
+  strong{color:var(--fg);}
+  /* top sticky TOC */
+  nav.toc{
+    position:sticky; top:0; z-index:40;
+    background:rgba(245,247,250,.95); backdrop-filter:blur(4px);
+    border-bottom:1px solid var(--border); padding:8px 14px;
+    display:flex; gap:5px; overflow-x:auto; white-space:nowrap;
+  }
+  nav.toc a{color:var(--muted); font-size:12.5px; font-weight:600; padding:5px 9px; border-radius:6px; flex:0 0 auto; text-decoration:none;}
+  nav.toc a:hover{background:var(--accent-soft); color:var(--fg);}
+  main{max-width:1080px; margin:0 auto; padding:26px 18px 100px;}
+  header.doc{border-bottom:2px solid var(--border); padding-bottom:22px; margin-bottom:30px;}
+  header.doc h1{font-size:clamp(20px,3vw,30px); margin:6px 0 8px;}
+  header.doc .sub{color:var(--muted); font-size:15px; margin:2px 0;}
+  header.doc .kicker{color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.02em; margin:0;}
+  section.card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:20px 22px; margin:20px 0; box-shadow:var(--shadow); scroll-margin-top:60px;
+  }
+  section.card>h2{font-size:20px; margin:0 0 14px; padding-bottom:9px; border-bottom:1px solid var(--border);}
+  section.card>h2 .n{color:var(--accent); margin-right:8px; font-variant-numeric:tabular-nums;}
+  h3{font-size:16px; color:var(--accent); margin:22px 0 9px;}
+  h4{font-size:14.5px; margin:16px 0 7px;}
+  p{margin:0 0 14px;}
+  ul,ol{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:5px;}
+  /* boxes */
+  .defbox{background:var(--accent-soft); border:1px solid #bcd4ec; border-radius:8px; padding:10px 14px; margin:12px 0; font-size:14px;}
+  .defbox b{color:var(--accent);}
+  .warn{background:var(--red-soft); border:1px solid #eab8b2; border-left:4px solid var(--red); border-radius:8px; padding:12px 15px; margin:14px 0; font-size:14.3px;}
+  .warn b{color:var(--red);}
+  .rec{background:var(--green-soft); border:1px solid #b6ddc3; border-left:4px solid var(--green); border-radius:8px; padding:12px 15px; margin:14px 0; font-size:14.3px;}
+  .rec b{color:var(--green);}
+  .note{background:var(--amber-soft); border:1px solid #e6cf94; border-left:4px solid var(--amber); border-radius:8px; padding:12px 15px; margin:14px 0; font-size:14px;}
+  .note b{color:var(--amber);}
+  .tag{display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--purple-soft); color:var(--purple); margin-left:4px;}
+  /* code block with copy */
+  .codeblock{position:relative; margin:14px 0;}
+  .codeblock pre{
+    background:var(--code-bg); color:var(--code-fg); border-radius:10px;
+    padding:16px 16px; overflow-x:auto; font-size:13px; line-height:1.65; margin:0;
+  }
+  .codeblock pre code{white-space:pre; color:var(--code-fg);}
+  .copy-btn{
+    position:absolute; top:8px; right:8px; z-index:2;
+    font:inherit; font-size:11.5px; font-weight:700; cursor:pointer;
+    background:#2b3948; color:#dfe7ef; border:1px solid #43566a; border-radius:6px; padding:4px 10px;
+  }
+  .copy-btn:hover{background:#3a4b5d;}
+  .copy-btn.done{background:var(--green); border-color:var(--green); color:#fff;}
+  /* tables */
+  .scroll-x{overflow-x:auto; margin:14px 0;}
+  table{width:100%; border-collapse:collapse; font-size:13.6px; background:var(--panel); min-width:520px;}
+  th,td{border:1px solid var(--border); padding:8px 11px; text-align:left; vertical-align:top;}
+  th{background:var(--panel2); color:var(--muted); font-size:12.6px;}
+  td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  /* flow diagram */
+  .flow{display:flex; flex-direction:column; gap:0; margin:14px 0;}
+  .flow .step{background:var(--panel2); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:8px; padding:9px 13px;}
+  .flow .step .t{font-weight:700; font-size:13.5px;}
+  .flow .step .d{font-size:12.3px; color:var(--muted); margin-top:1px;}
+  .flow .down{align-self:center; color:var(--accent); font-size:15px; padding:3px 0;}
+  /* 3-col mixed structure */
+  .cols3{display:grid; grid-template-columns:1fr; gap:12px; margin:14px 0;}
+  .mcol{border:1px solid var(--border); border-radius:9px; padding:12px 14px; background:var(--panel2);}
+  .mcol h4{margin:0 0 6px;}
+  .mcol.def{border-top:4px solid var(--accent);}
+  .mcol.exc{border-top:4px solid var(--purple);}
+  .mcol.keep{border-top:4px solid var(--green);}
+  .mcol .pill{display:inline-block; font-family:"D2Coding",monospace; font-size:11.5px; background:#fff; border:1px solid var(--border); border-radius:6px; padding:2px 7px; margin:3px 3px 0 0;}
+  /* block diagram */
+  .blockdia{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0;}
+  .bd-scale{background:var(--accent); color:#fff; border-radius:8px; padding:10px 12px; font-size:12px; font-weight:700; text-align:center; min-width:96px;}
+  .bd-vals{flex:1 1 240px; min-width:200px; border-radius:8px; padding:12px; color:#fff; font-weight:700; font-size:12.5px; text-align:center;}
+  .bd-q4{background:linear-gradient(90deg,#3a74a8,#2b5b8c);}
+  .bd-q8{background:linear-gradient(90deg,#7a5fd0,#5b3fb0);}
+  .bd-total{font-family:"D2Coding",monospace; font-size:12px; color:var(--muted); margin-top:4px;}
+  /* super-block diagram */
+  .superblock{border:2px solid var(--accent); border-radius:10px; padding:12px; background:var(--accent-soft); margin:12px 0;}
+  .superblock .sblabel{font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px;}
+  .subrow{display:flex; flex-wrap:wrap; gap:6px;}
+  .subblock{flex:1 1 90px; min-width:80px; background:#fff; border:1px solid var(--border); border-radius:7px; padding:7px; text-align:center; font-size:10.5px;}
+  .subblock .sc{display:block; background:var(--purple-soft); color:var(--purple); border-radius:4px; font-weight:700; padding:2px 0; margin-bottom:4px;}
+  .subblock .w{color:var(--muted); font-family:"D2Coding",monospace;}
+  /* get_rows matrix */
+  .matrix{display:inline-block; border:1px solid var(--border); border-radius:8px; overflow:hidden; font-family:"D2Coding",monospace; font-size:11px; background:#fff;}
+  .matrix .mrow{display:flex;}
+  .matrix .mcell{width:34px; height:22px; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--border); border-bottom:1px solid var(--border); color:var(--muted);}
+  .matrix .mrow.hit .mcell{background:var(--accent-soft); color:var(--accent); font-weight:700;}
+  .grx{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:12px 0;}
+  .grx .out{background:var(--green-soft); border:1px solid var(--green); color:var(--green); border-radius:8px; padding:8px 12px; font-family:"D2Coding",monospace; font-size:12px; font-weight:700;}
+  .grx .lab{font-size:12px; color:var(--muted);}
+  /* tie diagram */
+  .tie2{display:grid; grid-template-columns:1fr; gap:14px; margin:12px 0;}
+  .tiebox{border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--panel2);}
+  .tiebox h4{margin:0 0 8px;}
+  .tnode{background:#fff; border:1px solid var(--border); border-radius:7px; padding:7px 10px; font-size:12.5px; margin:5px 0;}
+  .tnode.w{border-left:4px solid var(--accent);}
+  .tnode.o{border-left:4px solid var(--purple);}
+  .tarrow{color:var(--accent); font-size:13px; text-align:center;}
+  .muted{color:var(--muted);}
+  .mono{font-family:"D2Coding",monospace;}
+  footer{border-top:1px solid var(--border); margin-top:40px; padding-top:20px; color:var(--muted); font-size:13px;}
+  @media (min-width:820px){
+    .cols3{grid-template-columns:1fr 1fr 1fr;}
+    .tie2{grid-template-columns:1fr 1fr;}
+  }
+  @media print{
+    nav.toc,.copy-btn{display:none !important;}
+    body{background:#fff; font-size:12px;}
+    section.card{box-shadow:none; border:1px solid #ccc; break-inside:avoid;}
+    .codeblock pre{background:#f2f2f2; color:#111; border:1px solid #ccc;}
+    a{color:#000; text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc" aria-label="문서 목차">
+  <a href="#intro">개요</a>
+  <a href="#cmd">1. 핵심 명령</a>
+  <a href="#flow">2. 내부 흐름</a>
+  <a href="#block">3. 블록 구조</a>
+  <a href="#getrows">4. GET_ROWS</a>
+  <a href="#tied">5. Tied Embedding</a>
+  <a href="#verify">6. 결과 검증</a>
+  <a href="#modes">7. 양자화 모드</a>
+  <a href="#htp">8. HTP 관점</a>
+  <a href="#htptest">9. HTP 테스트</a>
+  <a href="#matrix">10. 실험 매트릭스</a>
+  <a href="#bench">10-B. 벤치마크 결과</a>
+  <a href="#roadmap">11. 실행 순서</a>
+  <a href="#conclusion">12. 결론</a>
+  <a href="#assumptions">확인 필요 가정</a>
+</nav>
+
+<main>
+  <header class="doc" id="intro">
+    <p class="kicker">llama.cpp · GGUF · Mixed Precision Quantization</p>
+    <h1>llama.cpp GGUF Mixed Precision Quantization Guide</h1>
+    <p class="sub">token_embd.weight Q8_0 + Model Weights Q4_0</p>
+    <p class="sub">Qualcomm HTP 적용 관점 · ixi_gen 1.2B Semantic Agent PoC</p>
+
+    <div class="rec" style="margin-top:18px;">
+      <b>이 문서가 답하는 질문</b> — "모델의 나머지 weight는 <code>Q4_0</code>으로 두고, <code>token_embd.weight</code>(토큰 임베딩) 하나만 <code>Q8_0</code>으로 더 정밀하게 만들려면 어떻게 하는가? 그리고 그것이 Qualcomm HTP(Hexagon NPU) 위에서 실제로 의미가 있으려면 무엇을 확인해야 하는가?" 이 문서는 그 방법(<code>llama-quantize</code> 명령)과 원리(블록 양자화·GET_ROWS·tied embedding), 그리고 HTP 검증 절차를 초급 개발자 눈높이로 정리합니다.
+    </div>
+    <div class="warn">
+      <b>먼저 못 박아 둘 것</b> — GGUF의 <code>Q8_0</code>은 <strong>weight를 8bit 블록으로 저장</strong>하는 것이지, activation까지 int8로 만드는 <strong>W8A8(qint8) 양자화가 아닙니다</strong>. 이 구분은 문서 전체에서 반복해서 강조합니다. 또한 여기 나오는 HTP 지원 관련 서술은 대부분 "확인 필요"이며, 실제 지원 여부는 현재 checkout한 <code>llama-quantize --help</code>·<code>llama-quant.cpp</code>·<code>test-backend-ops</code> 결과로 검증해야 합니다.
+    </div>
+  </header>
+
+  <!-- 1. 핵심 명령 -->
+  <section class="card" id="cmd">
+    <h2><span class="n">1.</span>핵심 명령: token embedding만 Q8_0으로</h2>
+    <p>목표는 "기본은 Q4_0, 예외적으로 token embedding만 Q8_0"인 mixed precision GGUF를 만드는 것입니다. 아래 명령이 그 조합입니다.</p>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="명령 복사">복사</button>
+      <pre><code>cd /home/iptv-infra/workspace/llamacpp-aos-benchmark
+
+mkdir -p artifacts/quant
+
+build-host/bin/llama-quantize \
+  --pure \
+  --token-embedding-type q8_0 \
+  models/ixi_gen_1p2b_f16.gguf \
+  models/ixi_gen_1p2b_q4_0_tokemb_q8_0.gguf \
+  Q4_0 \
+  2>&amp;1 | tee artifacts/quant/ixi_gen_q4_0_tokemb_q8_0.log</code></pre>
+    </div>
+
+    <h3>옵션을 한 줄씩</h3>
+    <ul>
+      <li><code>Q4_0</code> — 명령 끝의 위치 인자로, <strong>모델의 기본 양자화 형식</strong>입니다. 양자화 가능한 대부분의 2D/3D weight(attention·FFN의 matmul weight 등)를 Q4_0으로 변환합니다.</li>
+      <li><code>--token-embedding-type q8_0</code> — <strong>token embedding tensor만 Q8_0으로 override</strong>합니다. 일반적으로 대상 tensor 이름은 <code>token_embd.weight</code>입니다. 즉 기본 Q4_0 규칙에서 이 tensor 하나만 예외로 빼냅니다.</li>
+      <li><code>--pure</code> — 기본 recipe가 일부 tensor를 <code>Q5_K</code>/<code>Q6_K</code> 등으로 <strong>자동 승격하는 것을 방지</strong>합니다. 실험 변수를 줄여 "token embedding만 Q8_0, 나머지는 순수 Q4_0"이라는 조건을 명확하게 만들어 줍니다.</li>
+      <li><code>models/ixi_gen_1p2b_f16.gguf</code> — 입력(재양자화 원본). FP16 GGUF가 원본으로 적합합니다.</li>
+      <li><code>models/ixi_gen_1p2b_q4_0_tokemb_q8_0.gguf</code> — 출력 파일 경로(이름에 조건을 담아 두면 나중에 헷갈리지 않습니다).</li>
+      <li><code>2&gt;&amp;1 | tee ...log</code> — 표준에러까지 합쳐 로그 파일로 저장합니다. 나중에 어떤 tensor가 어떤 타입으로 갔는지 <code>grep</code>으로 확인하는 근거가 됩니다.</li>
+    </ul>
+
+    <h3>개념 구조: 기본값 · 예외 · 유지</h3>
+    <div class="cols3">
+      <div class="mcol def">
+        <h4>기본값 → Q4_0</h4>
+        <p class="muted" style="font-size:12.5px; margin:0 0 6px;">양자화 가능한 대부분의 weight</p>
+        <span class="pill">blk.*.attn_q/k/v</span><span class="pill">attn_output</span><span class="pill">ffn_gate/up/down</span>
+      </div>
+      <div class="mcol exc">
+        <h4>예외 → Q8_0</h4>
+        <p class="muted" style="font-size:12.5px; margin:0 0 6px;">override 대상 하나</p>
+        <span class="pill">token_embd.weight</span>
+      </div>
+      <div class="mcol keep">
+        <h4>유지 → F16/F32</h4>
+        <p class="muted" style="font-size:12.5px; margin:0 0 6px;">양자화 제외가 될 수 있는 것</p>
+        <span class="pill">*_norm</span><span class="pill">bias</span><span class="pill">작은 1D tensor</span>
+      </div>
+    </div>
+    <div class="note"><b>참고</b> — <code>norm</code>·<code>bias</code>·작은 1차원 tensor는 애초에 양자화 대상이 아니어서 <code>F16</code>/<code>F32</code>로 남는 경우가 많습니다. 즉 "Q4_0 모델"이라 해도 파일 안 모든 tensor가 4bit인 것은 아닙니다.</div>
+  </section>
+
+  <!-- 2. 내부 흐름 -->
+  <section class="card" id="flow">
+    <h2><span class="n">2.</span>내부 처리 흐름</h2>
+    <p><code>llama-quantize</code>가 위 명령을 받으면 tensor를 하나씩 순회하며 "이 tensor를 어떤 타입으로 저장할지"를 결정합니다. 흐름은 대략 다음과 같습니다.</p>
+    <div class="flow" role="list">
+      <div class="step" role="listitem"><div class="t">① FP16 GGUF 읽기</div><div class="d">원본 tensor들을 메모리로 로드</div></div>
+      <div class="down">▼</div>
+      <div class="step" role="listitem"><div class="t">② tensor 이름 · architecture 분류</div><div class="d">각 tensor가 어떤 역할(attn/ffn/embedding/norm)인지 판별</div></div>
+      <div class="down">▼</div>
+      <div class="step" role="listitem"><div class="t">③ TOKEN_EMBD 여부 확인</div><div class="d">이 tensor가 token embedding인가?</div></div>
+      <div class="down">▼</div>
+      <div class="step" role="listitem"><div class="t">④ token_embd.weight → Q8_0 선택</div><div class="d">override 규칙 적용</div></div>
+      <div class="down">▼</div>
+      <div class="step" role="listitem"><div class="t">⑤ 나머지 양자화 대상 → Q4_0 선택</div><div class="d">--pure로 자동 승격 억제</div></div>
+      <div class="down">▼</div>
+      <div class="step" role="listitem"><div class="t">⑥ block 단위 quantization</div><div class="d">32개 weight씩 묶어 scale 계산 후 4bit/8bit로 인코딩</div></div>
+      <div class="down">▼</div>
+      <div class="step" role="listitem"><div class="t">⑦ mixed precision GGUF 저장</div><div class="d">tensor별로 서로 다른 타입이 섞인 파일 기록</div></div>
+    </div>
+
+    <h3>개념 의사 코드</h3>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="의사 코드 복사">복사</button>
+      <pre><code># 개념 설명용 pseudo-code (실제 llama-quantize 내부 구조와 1:1은 아님)
+for tensor in gguf_tensors:
+    if not is_quantizable(tensor):        # norm, bias, 작은 1D tensor 등
+        target_type = keep_original       # F16 / F32 유지
+    elif tensor.category == TOKEN_EMBD:
+        target_type = Q8_0                 # --token-embedding-type q8_0
+    else:
+        target_type = Q4_0                 # 기본 타입 (--pure로 승격 억제)
+
+    write_tensor(quantize(tensor, target_type))</code></pre>
+    </div>
+    <div class="note"><b>주의</b> — 위에서 보듯 <code>norm</code>/<code>bias</code> 등은 애초에 <code>is_quantizable</code>이 아니어서 양자화에서 제외될 수 있습니다. 즉 "예외 = Q8_0" 규칙보다 앞서 "양자화 제외" 규칙이 먼저 걸립니다.</div>
+  </section>
+
+  <!-- 3. 블록 구조 -->
+  <section class="card" id="block">
+    <h2><span class="n">3.</span>Q4_0과 Q8_0 block 구조</h2>
+    <div class="defbox"><b>block 양자화</b> = weight를 32개씩 한 묶음(block)으로 나누고, 그 32개를 대표하는 <b>scale 값 하나</b>와 각 weight의 <b>정수 코드</b>로 저장하는 방식. 복원 시 <code>weight ≈ scale × code</code>로 되돌립니다.</div>
+
+    <h4>Q4_0 — weight당 4bit</h4>
+    <div class="blockdia" aria-label="Q4_0 블록 구조">
+      <div class="bd-scale">scale<br>FP16<br>2 bytes</div>
+      <div class="bd-vals bd-q4">32 weight × 4bit = 16 bytes</div>
+    </div>
+    <p class="bd-total">total = 2 + 16 = <strong>18 bytes</strong> / 32 weight → effective ≈ <strong>4.5 bits per weight (bpw)</strong></p>
+
+    <h4>Q8_0 — weight당 8bit</h4>
+    <div class="blockdia" aria-label="Q8_0 블록 구조">
+      <div class="bd-scale">scale<br>FP16<br>2 bytes</div>
+      <div class="bd-vals bd-q8">32 weight × int8 = 32 bytes</div>
+    </div>
+    <p class="bd-total">total = 2 + 32 = <strong>34 bytes</strong> / 32 weight → effective ≈ <strong>8.5 bits per weight (bpw)</strong></p>
+
+    <div class="defbox"><b>bpw (bits per weight)</b> = weight 하나당 실제로 쓰는 평균 비트 수. scale 같은 부가정보까지 포함해서 나눈 값이라, "4bit 양자화"인데 bpw가 4.5인 이유가 여기에 있습니다.</div>
+
+    <div class="scroll-x">
+      <table aria-label="Q4_0과 Q8_0 비교">
+        <thead><tr><th>타입</th><th class="num">block weight 수</th><th class="num">값 저장 크기</th><th class="num">scale</th><th class="num">총 크기</th><th class="num">실효 bpw</th></tr></thead>
+        <tbody>
+          <tr><td>Q4_0</td><td class="num">32</td><td class="num">16 bytes</td><td class="num">2 bytes</td><td class="num">18 bytes</td><td class="num">4.5</td></tr>
+          <tr><td>Q8_0</td><td class="num">32</td><td class="num">32 bytes</td><td class="num">2 bytes</td><td class="num">34 bytes</td><td class="num">8.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>token embedding을 Q4_0 → Q8_0으로 바꿀 때 늘어나는 크기</h3>
+    <p>차이는 weight당 <code>8.5 − 4.5 = 4 bit = 0.5 byte</code>입니다. 따라서 대략:</p>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="크기 계산식 복사">복사</button>
+      <pre><code>추가 크기 ≈ vocab_size × embedding_dim × 0.5 bytes
+
+예시:
+  vocab_size    = 32,000
+  embedding_dim = 2,048
+  추가 크기 ≈ 32,000 × 2,048 × 0.5 = 32,768,000 bytes ≈ 약 31~32 MiB</code></pre>
+    </div>
+    <div class="note"><b>이 값은 예시입니다</b> — 실제 추가 크기는 모델의 vocab_size·embedding_dim, 그리고 tensor 구성/metadata에 따라 달라집니다. bpw와 파일 크기 모두 정확한 수치는 실제 GGUF로 확인해야 합니다.</div>
+  </section>
+
+  <!-- 4. GET_ROWS -->
+  <section class="card" id="getrows">
+    <h2><span class="n">4.</span>token embedding과 GET_ROWS</h2>
+    <div class="defbox"><b>GET_ROWS</b> = 큰 embedding 행렬(<code>token_embd.weight</code>)에서 <b>특정 token ID에 해당하는 row(행) 하나만 꺼내오는</b> lookup 연산. 전체 행렬 곱(matmul)이 아니라 "표에서 한 줄 찾기"에 가깝습니다.</div>
+    <div class="grx">
+      <div class="lab">token ID <b class="mono">501</b></div>
+      <div style="color:var(--accent);">→</div>
+      <div class="matrix" aria-label="token_embd.weight 행렬에서 501번째 row 조회">
+        <div class="mrow"><div class="mcell">r0</div><div class="mcell">·</div><div class="mcell">·</div><div class="mcell">·</div></div>
+        <div class="mrow"><div class="mcell">r1</div><div class="mcell">·</div><div class="mcell">·</div><div class="mcell">·</div></div>
+        <div class="mrow hit"><div class="mcell">r501</div><div class="mcell">0.1</div><div class="mcell">-0.3</div><div class="mcell">…</div></div>
+        <div class="mrow"><div class="mcell">…</div><div class="mcell">·</div><div class="mcell">·</div><div class="mcell">·</div></div>
+      </div>
+      <div style="color:var(--accent);">→</div>
+      <div class="out">embedding vector</div>
+    </div>
+    <ul>
+      <li>embedding은 일반적인 전체 matrix multiplication이 아니라, <strong>token ID에 해당하는 row를 읽어오는 연산</strong>입니다.</li>
+      <li><code>Q8_0</code>으로 저장하면 <code>Q4_0</code>보다 embedding 값의 <strong>세밀한 차이를 더 보존</strong>할 수 있습니다(8bit vs 4bit).</li>
+      <li>단, <strong>품질 개선 폭은 모델마다 다르며 반드시 평가가 필요합니다</strong>. "정밀도를 올렸으니 무조건 좋아진다"고 단정할 수 없습니다.</li>
+    </ul>
+  </section>
+
+  <!-- 5. Tied embedding -->
+  <section class="card" id="tied">
+    <h2><span class="n">5.</span>tied embedding일 때의 영향</h2>
+    <div class="defbox"><b>tied embedding (weight tying)</b> = 입력 임베딩 행렬(<code>token_embd.weight</code>)과 출력 logits를 만드는 행렬(<code>output.weight</code>/<code>lm_head</code>)이 <b>같은 tensor를 공유</b>하는 구조. 메모리를 아낄 수 있지만, 그 하나의 tensor가 입력과 출력 양쪽에 동시에 쓰입니다.</div>
+    <div class="tie2">
+      <div class="tiebox">
+        <h4>Untied (분리)</h4>
+        <div class="tnode w mono">token_embd.weight</div>
+        <div class="tarrow">▼ 입력 embedding 전용</div>
+        <div class="tnode">GET_ROWS</div>
+        <div style="height:8px;"></div>
+        <div class="tnode o mono">output.weight</div>
+        <div class="tarrow">▼ 최종 logits 전용</div>
+        <div class="tnode">lm_head / output projection (MUL_MAT)</div>
+      </div>
+      <div class="tiebox">
+        <h4>Tied (공유)</h4>
+        <div class="tnode w mono">token_embd.weight</div>
+        <div class="tarrow">▼ 입력</div>
+        <div class="tnode">GET_ROWS (embedding lookup)</div>
+        <div class="tarrow">▼ <b>같은 weight 재사용</b></div>
+        <div class="tnode">lm_head / output projection (MUL_MAT)</div>
+      </div>
+    </div>
+    <div class="warn">
+      <b>중요 경고</b> — tied embedding 모델에서 <code>token_embd.weight</code>를 <code>Q8_0</code>으로 바꾸면, <strong>입력 embedding뿐 아니라 최종 logits 계산의 정밀도와 backend 지원 여부에도 영향</strong>을 줍니다. 이 경우 embedding lookup(<code>GET_ROWS</code>)의 Q8_0 지원만이 아니라, 출력 projection(<code>MUL_MAT</code>)의 Q8_0 지원까지 함께 필요합니다. 또한 <strong>GGUF에 <code>output.weight</code>가 별도로 존재하지 않는다면 tied embedding일 가능성</strong>이 큽니다 — 반드시 확인해야 합니다.
+    </div>
+    <p>tied 여부는 다음처럼 GGUF에서 두 tensor 존재를 확인해 추정할 수 있습니다.</p>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="tied 확인 명령 복사">복사</button>
+      <pre><code>python third_party/llama.cpp/gguf-py/gguf/scripts/gguf_dump.py \
+  models/ixi_gen_1p2b_f16.gguf \
+  | grep -E 'token_embd\.weight|output\.weight'</code></pre>
+    </div>
+    <p class="muted" style="font-size:13px;"><code>token_embd.weight</code>만 보이고 <code>output.weight</code>가 없으면 tied embedding일 가능성이 높습니다(모델·변환 방식에 따라 다르므로 최종 확인은 architecture/config로).</p>
+  </section>
+
+  <!-- 6. 결과 검증 -->
+  <section class="card" id="verify">
+    <h2><span class="n">6.</span>양자화 결과 검증</h2>
+    <p>양자화가 끝나면 "정말 token_embd만 Q8_0이고 나머지는 Q4_0인지"를 로그와 GGUF dump로 확인합니다.</p>
+
+    <h4>① 로그에서 확인</h4>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="로그 grep 복사">복사</button>
+      <pre><code>grep -Ei \
+'token_embd|token embedding|output\.weight|quantizing to|q8_0|q4_0' \
+artifacts/quant/ixi_gen_q4_0_tokemb_q8_0.log</code></pre>
+    </div>
+
+    <h4>② GGUF dump에서 tensor 타입 확인</h4>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="gguf dump 복사">복사</button>
+      <pre><code>python third_party/llama.cpp/gguf-py/gguf/scripts/gguf_dump.py \
+  models/ixi_gen_1p2b_q4_0_tokemb_q8_0.gguf \
+  > /tmp/ixi_gen_mixed_dump.txt
+
+grep -E \
+'token_embd\.weight|output\.weight|blk\.0\.(attn|ffn)' \
+/tmp/ixi_gen_mixed_dump.txt | head -50</code></pre>
+    </div>
+
+    <div class="rec">
+      <b>성공 기준</b>
+      <ul style="margin:8px 0 0;">
+        <li><code>token_embd.weight</code> → <strong>Q8_0</strong></li>
+        <li>주요 <code>blk.*</code> weight(attn/ffn) → <strong>Q4_0</strong></li>
+        <li><code>norm</code>/<code>bias</code> 등 → <strong>F16/F32</strong>일 수 있음</li>
+        <li><code>output.weight</code>는 <strong>tied 여부에 따라 존재하지 않을 수 있음</strong></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7. 양자화 모드 전체 -->
+  <section class="card" id="modes">
+    <h2><span class="n">7.</span>llama.cpp 양자화 모드 전체 설명</h2>
+    <p>여기서는 llama.cpp에서 볼 수 있는 양자화 타입들을 분류별로 정리합니다. <strong>정확한 지원 목록은 llama.cpp 버전마다 다르므로</strong>, 현재 checkout한 <code>llama-quantize --help</code> 출력을 최종 기준으로 삼으세요.</p>
+
+    <h3>7.1 고정밀 / 비양자화</h3>
+    <div class="scroll-x">
+      <table aria-label="고정밀 타입">
+        <thead><tr><th>타입</th><th>숫자 표현</th><th>대략 크기</th><th>품질</th><th>속도</th><th>용도 · 재양자화 원본 적합성</th></tr></thead>
+        <tbody>
+          <tr><td>F32</td><td>32bit float</td><td>가장 큼(기준 ×1)</td><td>기준(무손실)</td><td>느림·메모리 큼</td><td>정밀 기준. 원본으로 이상적이나 무거움</td></tr>
+          <tr><td>F16</td><td>16bit float</td><td>F32의 약 1/2</td><td>사실상 무손실 수준</td><td>보통</td><td><strong>재양자화 원본으로 가장 흔히 사용</strong></td></tr>
+          <tr><td>BF16</td><td>16bit float(넓은 지수)</td><td>F16과 유사</td><td>학습/일부 하드웨어 친화</td><td>보통</td><td>원본 적합. 단말 backend 지원은 확인 필요</td></tr>
+          <tr><td>COPY</td><td>변환 없이 복사</td><td>원본과 동일</td><td>원본 유지</td><td>-</td><td>양자화 없이 tensor를 그대로 옮길 때</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>7.2 Legacy Q 계열</h3>
+    <h4>Q4_0</h4>
+    <p>거의 symmetric한 block quantization. 32개 weight당 scale 하나. 구조가 단순해 <strong>backend kernel 구현이 쉽고</strong>, Qualcomm HTP PoC의 <strong>우선 검증 대상</strong>입니다.</p>
+    <h4>Q4_1</h4>
+    <p><code>scale</code>과 <code>min/offset</code>을 함께 저장해 <strong>비대칭 분포 표현에 유리</strong>합니다. 대신 Q4_0보다 파일이 큽니다.</p>
+    <h4>Q5_0</h4>
+    <p>Q4_0과 유사하되 weight당 <strong>5bit</strong>. 품질·크기가 Q4_0과 Q8_0의 중간입니다.</p>
+    <h4>Q5_1</h4>
+    <p>Q4_1 구조의 5bit 버전. <code>scale + min</code>을 사용합니다.</p>
+    <h4>Q8_0</h4>
+    <p>8bit weight + block scale. <strong>품질 손실이 비교적 작아</strong> mixed precision에서 민감 tensor(예: token embedding)에 부분 적용하기 좋습니다.</p>
+    <div class="scroll-x">
+      <table aria-label="Legacy Q 비교">
+        <thead><tr><th>타입</th><th class="num">실효 bpw</th><th>상대 크기</th><th>품질</th><th>HTP PoC 권장도</th></tr></thead>
+        <tbody>
+          <tr><td>Q4_0</td><td class="num">약 4.5</td><td>작음</td><td>중간</td><td>높음</td></tr>
+          <tr><td>Q4_1</td><td class="num">약 5.0</td><td>중간</td><td>Q4_0보다 높음</td><td>지원 확인 필요</td></tr>
+          <tr><td>Q5_0</td><td class="num">약 5.5</td><td>중간 이상</td><td>높음</td><td>지원 확인 필요</td></tr>
+          <tr><td>Q5_1</td><td class="num">약 6.0</td><td>큼</td><td>높음</td><td>지원 확인 필요</td></tr>
+          <tr><td>Q8_0</td><td class="num">약 8.5</td><td>큼</td><td>매우 높음</td><td>부분 적용 후보</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>7.3 K-quant 계열</h3>
+    <div class="defbox"><b>K-quant</b> = 여러 weight를 큰 super-block으로 묶고, 그 내부를 다시 작은 sub-block으로 나눠 <b>sub-block마다 scale/min을 정밀하게 적용</b>하는 GGUF 양자화 방식. 같은 평균 bit 수라도 단순 Q4_0보다 값 분포를 더 정밀하게 표현합니다.</div>
+    <div class="warn">
+      <b>반드시 구분</b> — <code>Q4_K</code>는 <strong>실제 tensor storage type</strong>(한 tensor가 저장되는 형식)이고, <code>Q4_K_M</code>은 <strong>모델 전체 quantization recipe</strong>(어떤 tensor를 어떤 타입으로 섞을지의 조합)입니다. 여기서 <code>K</code>는 K-quant/super-block 구조를, <code>M</code>은 Medium mixed recipe를 뜻합니다.
+    </div>
+    <div class="superblock" aria-label="K-quant super-block 구조">
+      <div class="sblabel">super-block ≈ 256 weight (super-scale 공유) — 내부를 sub-block으로 다시 분할</div>
+      <div class="subrow">
+        <div class="subblock"><span class="sc">scale/min</span><span class="w">sub-block</span></div>
+        <div class="subblock"><span class="sc">scale/min</span><span class="w">sub-block</span></div>
+        <div class="subblock"><span class="sc">scale/min</span><span class="w">sub-block</span></div>
+        <div class="subblock"><span class="sc">scale/min</span><span class="w">sub-block</span></div>
+        <div class="subblock"><span class="sc">…</span><span class="w">16 또는 32 단위</span></div>
+      </div>
+    </div>
+    <p>보통 <strong>256개 weight</strong>를 하나의 super-block으로 묶고, 내부를 <strong>16개 또는 32개 단위 sub-block</strong>으로 다시 나눠 sub-block별 scale/min을 사용합니다. tensor storage type과 대략적인 effective bpw는 다음과 같습니다.</p>
+    <div class="scroll-x">
+      <table aria-label="K-quant tensor 타입">
+        <thead><tr><th>타입</th><th class="num">대략 effective bpw</th></tr></thead>
+        <tbody>
+          <tr><td>Q2_K</td><td class="num">약 2.625</td></tr>
+          <tr><td>Q3_K</td><td class="num">약 3.4375</td></tr>
+          <tr><td>Q4_K</td><td class="num">약 4.5</td></tr>
+          <tr><td>Q5_K</td><td class="num">약 5.5</td></tr>
+          <tr><td>Q6_K</td><td class="num">약 6.5625</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>모델 recipe와 S / M / L 접미사</h4>
+    <p>다음은 tensor 타입이 아니라 <strong>모델 전체 recipe</strong>입니다: <code>Q2_K_S</code>, <code>Q2_K</code>, <code>Q3_K_S</code>, <code>Q3_K_M</code>, <code>Q3_K_L</code>, <code>Q4_K_S</code>, <code>Q4_K_M</code>, <code>Q5_K_S</code>, <code>Q5_K_M</code>, <code>Q6_K</code>.</p>
+    <div class="defbox"><b>S / M / L</b> = Small / Medium / Large. 하나의 tensor block 인코딩 차이가 <b>아니라</b>, 모델 전체에서 <b>민감 tensor를 어떤 고정밀 타입으로 승격할지 결정하는 recipe 단계</b>입니다.</div>
+    <div class="scroll-x">
+      <table aria-label="S M L 경향">
+        <thead><tr><th>단계</th><th>고정밀 승격 tensor</th><th>파일 크기</th><th>품질 손실</th></tr></thead>
+        <tbody>
+          <tr><td>S (Small)</td><td>가장 적음</td><td>가장 작음</td><td>가장 큼</td></tr>
+          <tr><td>M (Medium)</td><td>중간</td><td>중간</td><td>중간(균형)</td></tr>
+          <tr><td>L (Large)</td><td>가장 많음</td><td>가장 큼</td><td>가장 적음</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>예시:</p>
+    <ul>
+      <li><strong>Q4_K_M</strong> — 대부분 weight → <code>Q4_K</code>, 일부 민감 tensor → <code>Q5_K</code> 또는 <code>Q6_K</code>, norm 등 → <code>F16/F32</code>.</li>
+      <li><strong>Q5_K_M</strong> — 대부분 weight → <code>Q5_K</code>, 일부 민감 tensor → <code>Q6_K</code>.</li>
+    </ul>
+    <div class="note"><b>버전 의존</b> — <code>Q4_K_M</code> 등이 실제로 어떤 tensor를 어떤 타입으로 승격하는지는 <strong>모델 architecture와 llama.cpp 버전에 따라 달라집니다</strong>. 정확한 매핑은 현재 checkout한 <code>llama-quant.cpp</code>와 dump 결과로 확인하세요.</div>
+
+    <h3>7.4 IQ 계열 (초저비트)</h3>
+    <div class="defbox"><b>IQ (importance-aware / non-linear quant)</b> = 단순 선형 int 양자화 대신 <b>codebook</b>과 <b>importance matrix(imatrix)</b> 정보를 적극 활용해, 아주 낮은 bit에서도 품질을 최대한 지키려는 형식.</div>
+    <p>타입: <code>IQ1_S</code>, <code>IQ1_M</code>, <code>IQ2_XXS</code>, <code>IQ2_XS</code>, <code>IQ2_S</code>, <code>IQ2_M</code>, <code>IQ3_XXS</code>, <code>IQ3_XS</code>, <code>IQ3_S</code>, <code>IQ3_M</code>, <code>IQ4_XS</code>, <code>IQ4_NL</code>.</p>
+    <ul>
+      <li>저비트에서 품질을 최대한 유지하기 위한 형식이며, <strong>imatrix가 중요할 수 있습니다</strong>.</li>
+      <li><strong>backend kernel 지원 범위가 제한될 수 있습니다</strong>(특히 NPU 계열).</li>
+    </ul>
+    <div class="defbox"><b>XXS / XS / S / M</b> = extremely-extra-small / extra-small / small / medium. 같은 bit 계열 안에서 더 공격적으로 줄일수록 XXS 쪽입니다.</div>
+    <p>낮은 bit일수록 일반적으로: 파일 크기 감소 · RAM 감소 ↔ 품질 저하 위험 증가 · kernel 지원 제한 증가 · dequantization 비용 증가 가능.</p>
+
+    <h3>7.5 특수 / 실험 양자화</h3>
+    <p>다음은 특수·실험 성격입니다: <code>TQ1_0</code>, <code>TQ2_0</code>(ternary 계열), <code>MXFP4_MOE</code>, <code>NVFP4</code>(FP4 계열/특정 하드웨어), <code>Q1_0</code>, <code>Q2_0</code>.</p>
+    <div class="warn"><b>경고</b> — 이들은 <strong>모든 backend와 모델에서 지원되지 않으며</strong>, 실험용이거나 특정 하드웨어/모델용입니다. PoC 초기에 손대는 것은 권장하지 않습니다.</div>
+  </section>
+
+  <!-- 8. HTP 관점 -->
+  <section class="card" id="htp">
+    <h2><span class="n">8.</span>Qualcomm HTP 적용 관점</h2>
+    <div class="note" style="border-left-color:var(--accent); background:var(--accent-soft); border-color:#bcd4ec;">
+      <b>프로젝트 핵심 조건</b>
+      <ul style="margin:8px 0 0;">
+        <li>타깃: <strong>Android ARM64</strong>, <strong>Qualcomm Snapdragon Gen4 계열</strong></li>
+        <li>NPU: <strong>HTP V75 후보</strong> <span class="tag">파일명/단말 정보 기반 후보</span></li>
+        <li>backend: <strong>llama.cpp Snapdragon Hexagon backend</strong></li>
+        <li>모델: <strong>ixi_gen 1.2B</strong> · 기준 quant: <strong>Q4_0</strong> · 목표: <strong>Semantic Agent PoC</strong></li>
+      </ul>
+    </div>
+    <p>핵심은 "GGUF가 지원하는 타입"과 "Hexagon backend가 실제로 kernel을 가진 타입"은 다르다는 점입니다.</p>
+    <ol>
+      <li>llama.cpp가 GGUF 타입을 지원해도, <strong>Hexagon backend가 해당 타입의 kernel을 지원한다고 보장할 수 없습니다.</strong></li>
+      <li>mixed precision tensor 중 <strong>하나라도 HTP에서 지원되지 않으면 그 op는 CPU fallback</strong>될 수 있습니다.</li>
+      <li>그 결과 <strong>HTP↔CPU tensor 이동(copy)</strong>이 발생하면 latency가 악화될 수 있습니다.</li>
+      <li>따라서 PoC에서는 "품질이 높은 quant"보다 <strong>"HTP native 지원 quant"가 더 중요할 수 있습니다.</strong></li>
+      <li>현재 우선 후보: <strong>① Q4_0 전체</strong>, <strong>② Q4_0 + token_embd.weight Q8_0</strong>.</li>
+      <li>후순위: <code>Q4_K_M</code>, IQ 계열, 초저비트 quant.</li>
+      <li><strong>K-quant는 HTP kernel/repack 지원을 먼저 확인해야 합니다</strong> — 일반 backend에서 잘 돌아도 HTP에서 지원한다는 뜻은 아닙니다.</li>
+    </ol>
+    <div class="warn"><b>다시 강조</b> — <code>Q8_0</code>은 <strong>weight를 8bit로 저장</strong>하는 GGUF block quantization이며, activation까지 int8로 만드는 <strong>W8A8(qint8)이 아닙니다</strong>. HTP에서 "Q8_0 지원"이란 곧 Q8_0 weight를 다루는 kernel(GET_ROWS / MUL_MAT)이 있는지를 뜻합니다.</div>
+  </section>
+
+  <!-- 9. HTP 테스트 -->
+  <section class="card" id="htptest">
+    <h2><span class="n">9.</span>HTP 지원 스모크 테스트</h2>
+
+    <h3>9.1 GET_ROWS Q8_0 (embedding lookup)</h3>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="GET_ROWS 테스트 복사">복사</button>
+      <pre><code>cd /home/iptv-infra/workspace/llamacpp-aos-benchmark/third_party/llama.cpp
+
+HB=0 S=R3CX403LWAB \
+./scripts/snapdragon/adb/run-tool.sh \
+  test-backend-ops -b HTP0 -o GET_ROWS \
+  2>&amp;1 | tee ../../artifacts/htp_smoke/get_rows_htp0.log
+
+grep -Ei \
+'GET_ROWS.*q8_0|q8_0.*GET_ROWS|OK|FAIL|unsupported' \
+../../artifacts/htp_smoke/get_rows_htp0.log</code></pre>
+    </div>
+    <ul>
+      <li><code>token_embd.weight</code>는 추론 시 <code>GET_ROWS</code> 연산에서 사용됩니다.</li>
+      <li>이 테스트로 <strong>Q8_0 GET_ROWS가 HTP에서 지원되는지</strong> 확인합니다.</li>
+      <li>지원하지 않으면 embedding lookup이 <strong>CPU fallback</strong>될 수 있습니다.</li>
+    </ul>
+
+    <h3>9.2 MUL_MAT Q8_0 (tied embedding 대비)</h3>
+    <div class="codeblock">
+      <button class="copy-btn" aria-label="MUL_MAT 테스트 복사">복사</button>
+      <pre><code>HB=0 S=R3CX403LWAB \
+./scripts/snapdragon/adb/run-tool.sh \
+  test-backend-ops -b HTP0 -o MUL_MAT \
+  2>&amp;1 | tee ../../artifacts/htp_smoke/mul_mat_htp0.log
+
+grep -Ei \
+'MUL_MAT\(type_a=q8_0|q8_0.*OK|q8_0.*FAIL' \
+../../artifacts/htp_smoke/mul_mat_htp0.log</code></pre>
+    </div>
+    <ul>
+      <li>tied embedding이면 token embedding weight가 <strong>최종 output projection에도 사용</strong>될 수 있습니다.</li>
+      <li>이 경우 <code>Q8_0 GET_ROWS</code>뿐 아니라 <strong><code>Q8_0 MUL_MAT</code>도 지원돼야</strong> 완전한 HTP 경로가 가능합니다.</li>
+    </ul>
+    <div class="note"><b>주의</b> — 위 <code>S=R3CX403LWAB</code>, <code>HB=0</code>, device·스크립트 경로는 현재 환경 예시입니다. 실제 단말 시리얼/스크립트 위치에 맞게 바꿔야 하며, <code>-o</code> 필터로 특정 op만 실행하는 방식은 <code>test-backend-ops</code> 버전에 따라 옵션이 다를 수 있습니다.</div>
+  </section>
+
+  <!-- 10. 실험 매트릭스 -->
+  <section class="card" id="matrix">
+    <h2><span class="n">10.</span>권장 실험 매트릭스</h2>
+    <div class="scroll-x">
+      <table aria-label="실험 매트릭스">
+        <thead><tr><th>실험</th><th>기본 weight</th><th>token embedding</th><th>목적</th></tr></thead>
+        <tbody>
+          <tr><td>Baseline</td><td>Q4_0</td><td>Q4_0</td><td>HTP 기준 성능</td></tr>
+          <tr><td>Mixed-1</td><td>Q4_0</td><td><strong>Q8_0</strong></td><td>embedding 품질 개선</td></tr>
+          <tr><td>Upper bound</td><td>Q8_0</td><td>Q8_0</td><td>품질 상한 및 HTP Q8 지원 확인</td></tr>
+          <tr><td>K-quant 비교</td><td>Q4_K_M recipe</td><td>recipe 기본</td><td>HTP 지원성 확인</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4>측정 항목</h4>
+    <div class="cols3">
+      <div class="mcol def">
+        <h4>크기 · 메모리</h4>
+        <ul style="margin:0; font-size:13px;"><li>GGUF 파일 크기</li><li>단말 RSS/PSS</li><li>HTP0-REPACK 크기</li><li>context 2048 메모리</li></ul>
+      </div>
+      <div class="mcol exc">
+        <h4>배치 · 경로</h4>
+        <ul style="margin:0; font-size:13px;"><li>GET_ROWS backend</li><li>MUL_MAT backend</li><li>CPU fallback 여부</li></ul>
+      </div>
+      <div class="mcol keep">
+        <h4>성능 · 품질</h4>
+        <ul style="margin:0; font-size:13px;"><li>pp255 tokens/sec</li><li>tg128 tokens/sec</li><li>출력 품질</li><li>발열 및 지속 성능</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10-B. 벤치마크 결과 -->
+  <section class="card" id="bench">
+    <h2><span class="n">10-B.</span>실측 benchmark 결과 (quant_matrix)</h2>
+    <p>앞 매트릭스를 실제로 측정한 결과입니다. 아래 수치는 <code>llamacpp-aos-benchmark</code> 저장소의 <code>artifacts/quantization/quant_matrix/quant_matrix.csv</code> <strong>원본</strong>이며, 임의 보정 없이 그대로 옮겼습니다. 대상: EXAONE(exaone4) 1.2B, 30 blocks, 입력 255 tokens / context 2048, 단말 SM8650(pineapple)·Android 14, HTP V75(후보), llama.cpp build 9793(e6b88e584).</p>
+
+    <div class="scroll-x">
+      <table aria-label="quant_matrix 벤치마크 원본">
+        <thead><tr>
+          <th>quant</th><th>backend</th>
+          <th class="num">htp_mib</th><th class="num">cpu_mib</th><th class="num">ttft_ms</th>
+          <th class="num">prefill_ms</th><th class="num">prefill_tps</th>
+          <th class="num">decode ms/tok</th><th class="num">decode_tps</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong>F16</strong></td><td>HTP0</td><td class="num">2296.50</td><td class="num">256.00</td><td class="num">1542.83</td><td class="num">251.95</td><td class="num">687.01</td><td class="num">87.80</td><td class="num">15.53</td></tr>
+          <tr><td>F16</td><td>CPU</td><td class="num">0.00</td><td class="num">2296.49</td><td class="num">2093.39</td><td class="num">1123.99</td><td class="num">76.67</td><td class="num">47.84</td><td class="num">16.56</td></tr>
+          <tr><td><strong>Q8_0</strong></td><td>HTP0</td><td class="num">1084.26</td><td class="num">136.00</td><td class="num">3267.80</td><td class="num">172.91</td><td class="num">801.73</td><td class="num">64.02</td><td class="num">15.70</td></tr>
+          <tr><td>Q8_0</td><td>CPU</td><td class="num">0.00</td><td class="num">136.49</td><td class="num">1799.75</td><td class="num">532.13</td><td class="num">206.27</td><td class="num">33.28</td><td class="num">25.89</td></tr>
+          <tr><td><strong>Q4_0</strong></td><td>HTP0</td><td class="num">574.25</td><td class="num">105.00</td><td class="num">1722.86</td><td class="num">151.44</td><td class="num">833.93</td><td class="num">56.30</td><td class="num">20.07</td></tr>
+          <tr><td>Q4_0</td><td>CPU</td><td class="num">0.00</td><td class="num">105.49</td><td class="num">1261.37</td><td class="num">528.58</td><td class="num">180.04</td><td class="num">22.62</td><td class="num">40.11</td></tr>
+          <tr><td><strong>Q4_K_S</strong></td><td>HTP0</td><td class="num">0.50</td><td class="num">105.00</td><td class="num">5527.69</td><td class="num">825.54</td><td class="num">15.59</td><td class="num">56.09</td><td class="num">19.21</td></tr>
+          <tr><td>Q4_K_S</td><td>CPU</td><td class="num">0.00</td><td class="num">105.49</td><td class="num">2220.75</td><td class="num">804.18</td><td class="num">9.81</td><td class="num">25.58</td><td class="num">33.73</td></tr>
+          <tr><td><strong>Q4_K_M</strong></td><td>HTP0</td><td class="num">0.50</td><td class="num">105.00</td><td class="num">5389.55</td><td class="num">794.06</td><td class="num">111.78</td><td class="num">61.46</td><td class="num">11.72</td></tr>
+          <tr><td>Q4_K_M</td><td>CPU</td><td class="num">0.00</td><td class="num">105.49</td><td class="num">2809.24</td><td class="num">840.41</td><td class="num">55.23</td><td class="num">27.17</td><td class="num">32.13</td></tr>
+          <tr><td><strong>Q4_K_pure</strong></td><td>HTP0</td><td class="num">0.50</td><td class="num">72.00</td><td class="num">5114.53</td><td class="num">794.04</td><td class="num">128.23</td><td class="num">61.08</td><td class="num">19.99</td></tr>
+          <tr><td>Q4_K_pure</td><td>CPU</td><td class="num">0.00</td><td class="num">72.49</td><td class="num">1981.46</td><td class="num">839.49</td><td class="num">125.06</td><td class="num">22.66</td><td class="num">37.32</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Q4_0 핵심: Prefill은 HTP 승, Decode는 CPU 승</h3>
+    <p style="font-size:13.5px; color:var(--muted); margin-bottom:6px;">막대가 짧을수록 빠름(ms). HTP=보라, CPU=파랑.</p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin:10px 0;">
+      <div><div style="font-size:12px; font-weight:700; margin-bottom:3px;">Prefill (ms) — Q4_0</div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">HTP0</span><div style="height:20px; width:28.6%; background:#6b4fc0; border-radius:4px;"></div><span style="font-size:11px;" class="mono">151.44</span></div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">CPU</span><div style="height:20px; width:100%; background:#2b5b8c; border-radius:4px;"></div><span style="font-size:11px;" class="mono">528.58</span></div>
+        <div style="font-size:11.5px; color:var(--green); font-weight:700;">→ HTP가 약 3.49× 빠름 ✔</div>
+      </div>
+      <div><div style="font-size:12px; font-weight:700; margin-bottom:3px;">Decode (ms/token) — Q4_0</div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">HTP0</span><div style="height:20px; width:100%; background:#6b4fc0; border-radius:4px;"></div><span style="font-size:11px;" class="mono">56.30</span></div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">CPU</span><div style="height:20px; width:40.2%; background:#2b5b8c; border-radius:4px;"></div><span style="font-size:11px;" class="mono">22.62</span></div>
+        <div style="font-size:11.5px; color:var(--amber); font-weight:700;">→ CPU가 약 2.49× 빠름 ⚠</div>
+      </div>
+    </div>
+
+    <h3>F16 · Q8_0도 같은 경향인가?</h3>
+    <p style="font-size:13.5px; color:var(--muted); margin-bottom:6px;">Q4_0과 같은 방식(막대가 짧을수록 빠름, HTP=보라 / CPU=파랑).</p>
+    <div style="display:flex; flex-direction:column; gap:14px; margin:10px 0;">
+      <div style="border:1px solid var(--border); border-radius:9px; padding:12px 14px; background:var(--panel2);">
+        <div style="font-weight:700; font-size:13.5px; margin-bottom:6px;">F16</div>
+        <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Prefill (ms)</div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">HTP0</span><div style="height:20px; width:22.4%; background:#6b4fc0; border-radius:4px;"></div><span style="font-size:11px;" class="mono">251.95</span></div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">CPU</span><div style="height:20px; width:100%; background:#2b5b8c; border-radius:4px;"></div><span style="font-size:11px;" class="mono">1123.99</span></div>
+        <div style="font-size:11.5px; color:var(--green); font-weight:700;">→ HTP가 약 4.46× 빠름 ✔ (6종 중 Prefill 가속 최대)</div>
+        <div style="font-size:12px; font-weight:700; margin:8px 0 3px;">Decode (ms/token)</div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">HTP0</span><div style="height:20px; width:100%; background:#6b4fc0; border-radius:4px;"></div><span style="font-size:11px;" class="mono">87.80</span></div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">CPU</span><div style="height:20px; width:54.5%; background:#2b5b8c; border-radius:4px;"></div><span style="font-size:11px;" class="mono">47.84</span></div>
+        <div style="font-size:11.5px; color:var(--amber); font-weight:700;">→ CPU가 약 1.84× 빠름 ⚠</div>
+      </div>
+      <div style="border:1px solid var(--border); border-radius:9px; padding:12px 14px; background:var(--panel2);">
+        <div style="font-weight:700; font-size:13.5px; margin-bottom:6px;">Q8_0</div>
+        <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Prefill (ms)</div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">HTP0</span><div style="height:20px; width:32.5%; background:#6b4fc0; border-radius:4px;"></div><span style="font-size:11px;" class="mono">172.91</span></div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">CPU</span><div style="height:20px; width:100%; background:#2b5b8c; border-radius:4px;"></div><span style="font-size:11px;" class="mono">532.13</span></div>
+        <div style="font-size:11.5px; color:var(--green); font-weight:700;">→ HTP가 약 3.08× 빠름 ✔</div>
+        <div style="font-size:12px; font-weight:700; margin:8px 0 3px;">Decode (ms/token)</div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">HTP0</span><div style="height:20px; width:100%; background:#6b4fc0; border-radius:4px;"></div><span style="font-size:11px;" class="mono">64.02</span></div>
+        <div style="display:flex; align-items:center; gap:8px; margin:2px 0;"><span style="width:44px; font-size:11px; color:var(--muted);">CPU</span><div style="height:20px; width:52.0%; background:#2b5b8c; border-radius:4px;"></div><span style="font-size:11px;" class="mono">33.28</span></div>
+        <div style="font-size:11.5px; color:var(--amber); font-weight:700;">→ CPU가 약 1.92× 빠름 ⚠</div>
+      </div>
+    </div>
+
+    <h3>전체 경향 — HTP vs CPU 몇 배?</h3>
+    <p style="font-size:13.5px; color:var(--muted); margin-bottom:6px;">막대 길이 = 빠른 쪽이 느린 쪽보다 몇 배 빠른가. <span style="color:#6b4fc0; font-weight:700;">보라=HTP 승</span>, <span style="color:#2b5b8c; font-weight:700;">파랑=CPU 승</span>.</p>
+    <div class="scroll-x">
+      <table aria-label="quant별 HTP vs CPU 배수 경향">
+        <thead><tr><th>quant</th><th>Prefill (누가 빠른가 · 배수)</th><th>Decode (누가 빠른가 · 배수)</th></tr></thead>
+        <tbody>
+          <tr><td><strong>F16</strong></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:100%; background:#6b4fc0; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#6b4fc0; font-weight:700;">HTP 4.46×</span></div></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:68.1%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 1.84×</span></div></td></tr>
+          <tr><td><strong>Q8_0</strong></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:69.1%; background:#6b4fc0; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#6b4fc0; font-weight:700;">HTP 3.08×</span></div></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:71.1%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 1.92×</span></div></td></tr>
+          <tr><td><strong>Q4_0</strong></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:78.3%; background:#6b4fc0; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#6b4fc0; font-weight:700;">HTP 3.49×</span></div></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:92.2%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 2.49×</span></div></td></tr>
+          <tr><td><strong>Q4_K_S</strong></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:23.1%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 1.03×</span></div></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:81.1%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 2.19×</span></div></td></tr>
+          <tr><td><strong>Q4_K_M</strong></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:23.8%; background:#6b4fc0; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#6b4fc0; font-weight:700;">HTP 1.06×</span></div></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:83.7%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 2.26×</span></div></td></tr>
+          <tr><td><strong>Q4_K_pure</strong></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:23.8%; background:#6b4fc0; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#6b4fc0; font-weight:700;">HTP 1.06×</span></div></td>
+            <td><div style="display:flex; align-items:center; gap:7px;"><div style="height:13px; width:100%; background:#2b5b8c; border-radius:3px;"></div><span class="mono" style="font-size:11px; white-space:nowrap; color:#2b5b8c; font-weight:700;">CPU 2.70×</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rec"><b>Prefill 경향 —</b> 실제 HTP weight offload가 되는 <strong>F16·Q8_0·Q4_0에서만 HTP가 3~4.5× 빠릅니다.</strong> 연산량이 가장 큰 <strong>F16이 4.46×로 가속 최대</strong>(HTP 병렬 이득이 큼). 반면 HTP에 대형 weight가 안 올라간 <strong>Q4_K 계열은 ~1×로 차이가 없거나 오히려 HTP가 근소하게 느립니다</strong>(Q4_K_S). → "HTP Prefill 가속"은 weight가 실제 HTP에 올라간 경우에만 나타난다.</div>
+    <div class="note"><b>Decode 경향 —</b> 모든 quant에서 <strong>CPU가 빠르고</strong>, weight가 작아질수록 CPU 우위가 커집니다: <strong>F16 1.84× → Q8_0 1.92× → Q4_0 2.49× → Q4_K_pure 2.70×</strong>. Decode는 batch-1 memory-bound라 CPU가 작은 weight에서 이득을 더 보는 반면, HTP는 token당 dispatch·backend 전환 고정 overhead가 남아 못 따라가는 것으로 <strong>추정</strong>됩니다(op별 실행 backend 계측 필요 <span class="tag t-check">확인 필요</span>).</div>
+
+    <h4>핵심 해석</h4>
+    <div class="rec"><b>확인된 것</b>
+      <ul style="margin:8px 0 0;">
+        <li><strong>HTP 메모리 배치</strong> — F16(2296.50) · Q8_0(1084.26) · Q4_0(574.25) MiB에는 HTP에 대형 weight가 올라간다. 반면 <strong>Q4_K 계열은 0.50 MiB</strong> — <code>htp_layers=31</code>만 보고 실제 offload를 판단하면 안 된다.</li>
+        <li><strong>Prefill</strong> — F16/Q8_0/Q4_0에서 HTP 가속이 크다(Q4_0 HTP 151.44 vs CPU 528.58, ≈3.49×). Q4_K는 HTP 가속이 거의 없거나 일관되지 않다.</li>
+        <li><strong>Decode</strong> — 모든 quant에서 현재 <strong>CPU-only가 더 빠르다</strong>(Q4_0 HTP 56.30 vs CPU 22.62 ms/tok, CPU ≈2.49×). "NPU 연결 성공"과 "Decode 가속"은 별개다.</li>
+      </ul>
+    </div>
+    <div class="warn"><b>token_embd Q8_0 관점(이 문서 주제와의 연결) —</b> 이 mixed 구성이 HTP에서 완전한 이득을 보려면, 이 문서 <a href="#htptest">9장</a>의 <code>GET_ROWS Q8_0</code>과 (tied라면) <code>MUL_MAT Q8_0</code>가 실제로 HTP에서 지원돼야 합니다. 위 결과의 <strong>Decode CPU 우위</strong>는 embedding/LM Head가 CPU에 남아 token당 CPU↔HTP 왕복이 생기는 정황과 연결되지만, 이는 아직 <strong>가설</strong>이며 op별 실행 backend 계측이 필요합니다.</div>
+    <div class="note"><b>데이터 주의 (TPS ↔ ms/token 불일치)</b> — CSV의 <code>decode_tps</code>는 <code>1000 / decode_ms_per_tok</code>과 정확히 일치하지 않는다(예: Q4_0 HTP 56.30 ms → 역산 ≈17.76 이지만 CSV는 20.07). 측정 구간·warm-up·첫 token 포함 여부·파싱 차이가 원인일 수 있으므로, <strong>상대 비교는 <code>ms/token</code>을 우선 기준</strong>으로 삼는다.</div>
+    <p style="font-size:13px; color:var(--muted);">※ 차트·필터·정렬이 포함된 발표용 상세 분석은 별도 세미나 문서에 있습니다: <code>llamacpp-aos-benchmark/artifacts/seminar/exaone_htp_quant_seminar.html</code>. 메모리 repack 로그(Q4_0 HTP0-REPACK 573.75 MiB ≈ CPU-only 678.75의 84.5%)와 <code>supports-op GET_ROWS ... no</code> 근거도 그 문서에 정리돼 있다.</p>
+  </section>
+
+  <!-- 11. 실행 순서 -->
+  <section class="card" id="roadmap">
+    <h2><span class="n">11.</span>권장 실행 순서 (로드맵)</h2>
+    <div class="flow">
+      <div class="step"><div class="t">Step 1 — Q4_0 baseline이 실제 HTP에서 MUL_MAT을 수행하는지 확인</div>
+        <div class="d">성공 기준: HTP0 device 발견 · offloaded N/N layers · HTP0-REPACK &gt; 0 · HTP0 matmul 로그 · 주요 CPU fallback 오류 없음</div></div>
+      <div class="down">▼</div>
+      <div class="step"><div class="t">Step 2 — GET_ROWS Q8_0 op 지원 확인</div><div class="d">9.1 스모크 테스트</div></div>
+      <div class="down">▼</div>
+      <div class="step"><div class="t">Step 3 — token_embd.weight Q8_0 mixed GGUF 생성</div><div class="d">1장 핵심 명령</div></div>
+      <div class="down">▼</div>
+      <div class="step"><div class="t">Step 4 — GGUF tensor 타입 검증</div><div class="d">6장 dump/grep로 token_embd=Q8_0, blk.*=Q4_0 확인</div></div>
+      <div class="down">▼</div>
+      <div class="step"><div class="t">Step 5 — 단말에 모델 push</div><div class="d">adb push 후 로드 확인</div></div>
+      <div class="down">▼</div>
+      <div class="step"><div class="t">Step 6 — Q4_0 baseline과 mixed 모델 성능 비교</div><div class="d">10장 측정 항목</div></div>
+      <div class="down">▼</div>
+      <div class="step"><div class="t">Step 7 — 품질 이득이 성능·메모리 비용보다 의미 있는지 판단</div><div class="d">최종 채택 여부 결정</div></div>
+    </div>
+  </section>
+
+  <!-- 12. 결론 -->
+  <section class="card" id="conclusion">
+    <h2><span class="n">12.</span>실무 결론</h2>
+    <div class="rec">
+      <ul style="margin:0;">
+        <li><code>token_embd.weight</code>만 <code>Q8_0</code>으로 만드는 것은 GGUF <strong>mixed precision으로 가능</strong>합니다.</li>
+        <li><code>--pure --token-embedding-type q8_0 ... Q4_0</code> 조합이 <strong>실험 변수를 가장 명확하게 통제</strong>합니다.</li>
+        <li><code>Q8_0</code>은 <strong>qint8 W8A8과 같은 의미가 아니라</strong> GGUF weight block quantization입니다.</li>
+        <li><strong>tied embedding이면 출력 projection에도 영향</strong>을 줍니다.</li>
+        <li>Qualcomm HTP에서는 <strong>GET_ROWS Q8_0과 MUL_MAT Q8_0 지원을 별도로 검증</strong>해야 합니다.</li>
+        <li><code>Q4_K_M</code> 등 K-quant는 일반 backend에서는 유용하지만 <strong>HTP 지원 여부를 먼저 확인</strong>해야 합니다.</li>
+        <li>PoC 우선순위: <strong>Q4_0 HTP 성공 → token embedding Q8_0 → 성능·품질 비교</strong> 순서.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 확인 필요 가정 -->
+  <section class="card" id="assumptions">
+    <h2><span class="n">＊</span>확인이 필요한 기술적 가정</h2>
+    <ul>
+      <li>HTP가 특정 GGUF 타입(예: Q8_0의 GET_ROWS/MUL_MAT, K-quant)을 지원하는지는 <strong>단정하지 않았습니다</strong> — <code>test-backend-ops</code>로 실측이 필요합니다.</li>
+      <li><strong>HTP V75</strong>는 파일명·단말 정보 기반 <strong>후보</strong> 표현입니다. 실제 칩/버전은 단말에서 확인해야 합니다.</li>
+      <li><code>Q4_K_M</code>의 tensor recipe는 <strong>모델 architecture와 llama.cpp 버전에 따라 달라질 수 있습니다</strong>.</li>
+      <li>정확한 지원 타입 목록은 현재 checkout한 <code>llama-quantize --help</code>, <code>llama-quant.cpp</code>, <code>test-backend-ops</code> 결과를 기준으로 확인해야 합니다.</li>
+      <li>bits-per-weight와 파일 크기는 <strong>tensor 구성 및 metadata에 따라 달라질 수 있습니다</strong>.</li>
+      <li><code>Q8_0</code>은 <strong>activation까지 int8로 만드는 W8A8 양자화가 아닙니다</strong>(weight-only block quant).</li>
+      <li>ixi_gen 1.2B의 tied embedding 여부, vocab_size, embedding_dim은 <strong>실제 config/GGUF로 확인</strong>해야 합니다(문서의 32000·2048은 예시).</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>이 문서는 외부 CDN·JS·CSS·이미지를 전혀 사용하지 않는 self-contained HTML입니다. 브라우저에서 파일을 직접 열면 동작하며, 인쇄 시 목차와 복사 버튼은 숨겨집니다. HTP/HMX/HVX 및 backend 타입 지원에 관한 서술은 실측(로그·profile·test-backend-ops)으로 반드시 재확인하세요.</p>
+  </footer>
+</main>
+
+<script>
+  // 코드 복사 버튼
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.parentElement.querySelector('pre');
+      if(!pre) return;
+      var text = pre.innerText;
+      function done(){ btn.textContent='복사됨'; btn.classList.add('done'); setTimeout(function(){ btn.textContent='복사'; btn.classList.remove('done'); },1400); }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done, function(){ fallback(text, done); });
+      } else { fallback(text, done); }
+    });
+  });
+  function fallback(text, cb){
+    var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta); if(cb) cb();
+  }
+  // 목차 클릭 시 부드러운 이동은 CSS scroll-behavior로 처리됨 (별도 JS 불필요)
+</script>
+</body>
+</html>
